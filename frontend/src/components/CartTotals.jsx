@@ -31,7 +31,7 @@ const CartTotals = () => {
                 quantity: item.quantity || 1,
             }));
 
-            const res = await axios.post("/payment/create-checkout-session", {
+            const res = await axios.post("payment/create-checkout-session", {
                 products: productsPayload,
                 couponCode: coupon ? coupon.code : null,
             });

@@ -20,6 +20,12 @@ import e from 'express';
 dotenv.config();
 
 const app = express();
+
+app.use((req, res, next) => {
+    console.log(`[BACKEND] ${req.method} ${req.url}`);
+    next();
+});
+
 const PORT = process.env.PORT || 5000;
 // Capture raw request body for Stripe webhook signature verification while
 // still parsing JSON for other routes. The `verify` option stores the raw
@@ -47,6 +53,11 @@ const allowedOrigins = rawFrontend
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+
+console.log("CORS Configuration:", {
+    NODE_ENV: process.env.NODE_ENV,
+    allowedOrigins
+});
 
 if (process.env.NODE_ENV === 'development') {
     app.use(
@@ -101,12 +112,20 @@ if (process.env.NODE_ENV === 'development') {
         if (req.path.startsWith('/api')) return next();
         res.sendFile(path.join(buildPath, 'index.html'));
     });
-
-    app.listen(PORT, () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
-    });
 }
 
-connectDB();
+const startServer = async () => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to start server:", error.message);
+        process.exit(1);
+    }
+};
+
+startServer();
 
 export default app;

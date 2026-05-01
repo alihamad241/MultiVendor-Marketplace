@@ -320,7 +320,7 @@ function AccountDetailsForm({ user }) {
         }
 
         try {
-            const res = await axios.put("/auth/profile", payload);
+            const res = await axios.put("auth/profile", payload);
             const updatedUser = res.data;
             setUserState(updatedUser);
             toast.success("Profile updated successfully");

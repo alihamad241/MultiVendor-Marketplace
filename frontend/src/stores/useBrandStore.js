@@ -10,7 +10,7 @@ export const useBrandStore = create((set) => ({
     createStore: async (storeData) => {
         set({ loading: true });
         try {
-            const res = await axios.post("/stores", storeData);
+            const res = await axios.post("stores", storeData);
             set((prev) => ({
                 stores: [...prev.stores, res.data],
                 loading: false,
@@ -27,7 +27,7 @@ export const useBrandStore = create((set) => ({
     fetchAllStores: async () => {
         set({ loading: true });
         try {
-            const response = await axios.get("/stores");
+            const response = await axios.get("stores");
             set({ stores: response.data.stores || response.data, loading: false });
             return response.data;
         } catch (error) {

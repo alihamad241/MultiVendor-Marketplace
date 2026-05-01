@@ -10,7 +10,7 @@ export const useOrdersStore = create((set, get) => ({
     fetchOrders: async () => {
         set({ loading: true, error: null });
         try {
-            const res = await axios.get("/auth/orders");
+            const res = await axios.get("auth/orders");
             const data = res.data || [];
             set({ orders: data });
             return data;

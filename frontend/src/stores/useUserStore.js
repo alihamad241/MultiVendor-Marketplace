@@ -15,7 +15,7 @@ export const useUserStore = create((set, get) => ({
         // }
 
         try {
-            const res = await axios.post("/auth/signup", {
+            const res = await axios.post("auth/signup", {
                 name,
                 email,
                 password,
@@ -31,7 +31,7 @@ export const useUserStore = create((set, get) => ({
     login: async (email, password) => {
         set({ loading: true });
         try {
-            const res = await axios.post("/auth/login", {
+            const res = await axios.post("auth/login", {
                 email,
                 password,
             });
@@ -46,7 +46,7 @@ export const useUserStore = create((set, get) => ({
     checkAuth: async () => {
         set({ checkingAuth: true });
         try {
-            const response = await axios.get("/auth/profile");
+            const response = await axios.get("auth/profile");
             set({ user: response.data, checkingAuth: false });
         } catch (error) {
             set({ user: null, checkingAuth: false });
@@ -54,7 +54,7 @@ export const useUserStore = create((set, get) => ({
     },
     logout: async () => {
         try {
-            await axios.post("/auth/logout");
+            await axios.post("auth/logout");
             set({ user: null });
             toast.success("Logged out successfully");
         } catch (error) {
@@ -65,7 +65,7 @@ export const useUserStore = create((set, get) => ({
         if (get().checkingAuth) return;
         set({ checkingAuth: true });
         try {
-            const response = await axios.post("/auth/refresh-token");
+            const response = await axios.post("auth/refresh-token");
             set({ checkingAuth: false });
             return response.data; //not important cause it will be handled by the interceptor
         } catch (error) {

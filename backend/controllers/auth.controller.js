@@ -13,7 +13,13 @@ const generateTokens = (userId) => {
 };
 
 const storeRefreshToken = async (userId, refreshToken) => {
-    await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60);
+    const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Redis operation timed out")), 5000)
+    );
+    await Promise.race([
+        redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60),
+        timeout
+    ]);
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
@@ -37,20 +43,29 @@ const setCookies = (res, accessToken, refreshToken) => {
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
+    console.log("Signup request received:", { email, name });
 
     try {
+        console.log("Checking if user exists...");
         const userExists = await User.findOne({ email });
 
         if (userExists) return res.status(400).json({ message: "User already exists" });
 
+        console.log("Creating user...");
         const user = await User.create({ name, email, password });
+        console.log("User created:", user._id);
 
         // authenticate
+        console.log("Generating tokens...");
         const { accessToken, refreshToken } = generateTokens(user._id, 200, res);
 
+        console.log("Storing refresh token in Redis...");
         await storeRefreshToken(user._id, refreshToken);
+        console.log("Refresh token stored.");
 
+        console.log("Setting cookies...");
         setCookies(res, accessToken, refreshToken);
+        console.log("Cookies set.");
 
         res.status(201).json({
             user: {

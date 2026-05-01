@@ -17,7 +17,7 @@ export const useCouponStore = create((set, get) => ({
     getMyCoupon: async () => {
         set({ loading: true, error: null });
         try {
-            const res = await axios.get("/coupons");
+            const res = await axios.get("coupons");
             const coupon = res.data || null;
             set({ coupon, isCouponApplied: !!coupon });
             // mirror into cart store so totals keep working
@@ -36,7 +36,7 @@ export const useCouponStore = create((set, get) => ({
     applyCoupon: async (code) => {
         set({ loading: true, error: null });
         try {
-            const res = await axios.post("/coupons/validate", { code });
+            const res = await axios.post("coupons/validate", { code });
             const payload = { code: res.data.code, discountPercentage: res.data.discountPercentage };
             set({ coupon: payload, isCouponApplied: true });
             useCartStore.setState({ coupon: payload, isCouponApplied: true });
@@ -65,7 +65,7 @@ export const useCouponStore = create((set, get) => ({
     fetchCoupons: async () => {
         set({ adminLoading: true, adminError: null });
         try {
-            const res = await axios.get("/coupons/admin");
+            const res = await axios.get("coupons/admin");
             const data = res.data;
             const list = Array.isArray(data) ? data : Array.isArray(data?.coupons) ? data.coupons : [];
             set({ adminCoupons: list });
@@ -83,7 +83,7 @@ export const useCouponStore = create((set, get) => ({
     createCoupon: async (payload) => {
         set({ adminLoading: true, adminError: null });
         try {
-            const res = await axios.post("/coupons/admin/create", payload);
+            const res = await axios.post("coupons/admin/create", payload);
             toast.success("Coupon created");
             await get().fetchCoupons();
             return res.data;

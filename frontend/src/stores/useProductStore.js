@@ -13,7 +13,7 @@ export const useProductStore = create((set, get) => ({
     createProduct: async (productData) => {
         set({ loading: true });
         try {
-            const res = await axios.post("/products", productData);
+            const res = await axios.post("products", productData);
             // refresh product lists from server to avoid stale state
             try {
                 await get().fetchAllProducts();
@@ -36,7 +36,7 @@ export const useProductStore = create((set, get) => ({
     fetchAllProducts: async () => {
         set({ loading: true });
         try {
-            const response = await axios.get("/products");
+            const response = await axios.get("products");
             // accept either { products: [...] } or an array
             const data = response.data?.products || response.data || [];
             set({ products: data, loading: false });
@@ -81,7 +81,7 @@ export const useProductStore = create((set, get) => ({
             const params = {};
             if (category) params.category = category;
             if (gender) params.gender = gender;
-            const response = await axios.get("/products", { params });
+            const response = await axios.get("products", { params });
             const data = response.data?.products || response.data || [];
             set({ products: data, loading: false });
         } catch (error) {
@@ -130,7 +130,7 @@ export const useProductStore = create((set, get) => ({
     fetchFeaturedProducts: async () => {
         set({ loading: true });
         try {
-            const response = await axios.get("/products/featured");
+            const response = await axios.get("products/featured");
             // accept either { products: [...] } or [...]
             const data = response.data.products || response.data;
             set({ featuredProducts: data, loading: false });

@@ -12,7 +12,7 @@ export const useCartStore = create((set, get) => ({
 
     getCartItems: async () => {
         try {
-            const res = await axios.get("/cart");
+            const res = await axios.get("cart");
             // backend returns an array of cart items
             set({ cart: res.data });
             get().calculateTotals();
@@ -36,7 +36,7 @@ export const useCartStore = create((set, get) => ({
                 toast.error("Invalid product");
                 return;
             }
-            const res = await axios.post("/cart", { productId });
+            const res = await axios.post("cart", { productId });
             toast.success("Product added to cart");
 
             // server returns populated cart items; update store directly
@@ -49,7 +49,7 @@ export const useCartStore = create((set, get) => ({
 
     removeFromCart: async (productId) => {
         try {
-            const res = await axios.delete(`/cart/`, { data: { productId } });
+            const res = await axios.delete(`cart/`, { data: { productId } });
             toast.success("Product removed from cart");
             set({ cart: res.data });
             get().calculateTotals();
