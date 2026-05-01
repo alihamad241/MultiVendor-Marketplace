@@ -1,0 +1,140 @@
+# 🛍️ Full-Stack E-Commerce Platform
+
+This is a complete, full-stack e-commerce web application built with a modern technology stack. It features a React-based frontend for a dynamic user experience and a robust Node.js/Express backend to handle business logic, data, and payments.
+
+## ✨ Features
+
+### Frontend
+- **Dynamic & Responsive UI:** Built with React and styled with Tailwind CSS.
+- **Product Management:** View products, filter, and search.
+- **Shopping Cart:** Add, remove, and update products in the cart.
+- **Wishlist:** Save favorite products.
+- **User Authentication:** Secure login and registration using JWT.
+- **Checkout Process:** Seamless checkout experience powered by Stripe.
+- **Admin Dashboard:** Analytics and store management functionalities.
+- **State Management:** Centralized state management with Zustand.
+- **Notifications:** User-friendly toast notifications for actions.
+
+### Backend
+- **RESTful API:** A comprehensive API built with Express.js.
+- **Database:** MongoDB with Mongoose for data modeling.
+- **Authentication & Authorization:** Secure user authentication using JSON Web Tokens (JWT).
+- **Payment Integration:** Secure payment processing with Stripe.
+- **Image Management:** Cloud-based image uploads and transformations with Cloudinary.
+- **Caching:** Redis integration for improved performance.
+- **Coupon System:** Generate and validate discount coupons.
+- **Order Management:** Track and manage customer orders.
+
+## 🛠️ Tech Stack
+
+| Category      | Technology                                                                                             |
+|---------------|--------------------------------------------------------------------------------------------------------|
+| **Frontend**  | React, Vite, React Router, Zustand, Axios, Tailwind CSS, Framer Motion, Stripe.js                      |
+| **Backend**   | Node.js, Express.js, MongoDB (Mongoose), Redis (ioredis), JWT (jsonwebtoken), Bcrypt.js                |
+| **Services**  | Stripe (Payments), Cloudinary (Image Storage), SendGrid/Nodemailer (Email)                             |
+| **DevOps**    | `nodemon` for live-reloading, `concurrently` to run both frontend and backend with one command.        |
+
+## 📂 Project Structure
+
+The project is organized into two main directories: `frontend` and `backend`.
+
+```
+/
+├── backend/
+│   ├── controllers/  # Request handlers
+│   ├── libs/         # External service clients (DB, Redis, etc.)
+│   ├── models/       # Mongoose schemas
+│   ├── middleware/   # Express middleware
+│   ├── routes/       # API routes
+│   └── server.js     # Backend entry point
+├── frontend/
+│   ├── src/
+│   │   ├── components/ # Reusable React components
+│   │   ├── pages/      # Page components
+│   │   ├── stores/     # Zustand state stores
+│   │   ├── libs/       # Axios instance
+│   │   └── App.jsx     # Main App component
+│   └── vite.config.js  # Vite configuration
+├── .env                # Environment variables
+└── package.json        # Project scripts and dependencies
+```
+
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+- Node.js (v18.x or higher)
+- npm
+- MongoDB (local instance or a cloud service like MongoDB Atlas)
+- Redis (local instance or a cloud service like Upstash)
+
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd <repository-name>
+    ```
+
+2.  **Install backend dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Install frontend dependencies:**
+    ```bash
+    npm install --prefix frontend
+    ```
+
+### Configuration
+
+Create a `.env` file in the root of the project and add the following environment variables. Replace the placeholder values with your actual credentials.
+
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+
+# MongoDB Connection
+MONGO_URI=<your_mongodb_connection_string>
+
+# Redis Connection (e.g., from Upstash)
+UPSTASH_REDIS_URL=<your_redis_connection_url>
+
+# JWT Secrets
+ACCESS_TOKEN_SECRET=<your_strong_access_token_secret>
+REFRESH_TOKEN_SECRET=<your_strong_refresh_token_secret>
+
+# Cloudinary Credentials
+CLOUDINARY_CLOUD_NAME=<your_cloudinary_cloud_name>
+CLOUDINARY_API_KEY=<your_cloudinary_api_key>
+CLOUDINARY_API_SECRET=<your_cloudinary_api_secret>
+
+# Stripe Credentials
+STRIPE_SECRET_KEY=<your_stripe_secret_key>
+```
+
+### Running the Application
+
+You can run both the frontend and backend servers concurrently with a single command.
+
+1.  **Run the development servers:**
+    This command will start the backend server with `nodemon` and the frontend Vite dev server.
+    ```bash
+    npm run dev
+    ```
+
+2.  **Open your browser:**
+    - The backend API will be running at `http://localhost:5000`.
+    - The frontend application will be available at `http://localhost:5173`.
+
+### Available Scripts
+
+- `npm run dev`: Starts both backend and frontend development servers.
+- `npm run start`: Starts the backend server for production.
+- `npm run build`: Builds the frontend application for production.
+- `npm run make`: Builds the project and starts the development server.
+- `npm run lint --prefix frontend`: Lints the frontend code.
