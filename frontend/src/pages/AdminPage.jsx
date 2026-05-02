@@ -12,102 +12,35 @@ import { useCouponStore } from "../stores/useCouponStore";
 import toast from "react-hot-toast";
 
 const tabs = [
-    { id: "create", label: "Create Product", icon: PlusCircle },
+    { id: "stores", label: "Store Requests", icon: PlusCircle },
     { id: "analytics", label: "Analytics", icon: BarChart },
     { id: "coupons", label: "Coupons", icon: ShoppingBasket },
 ];
 
 const AdminPage = () => {
-    const [activeTab, setActiveTab] = useState("create");
-    const { fetchAllProducts, createProduct, loading } = useProductStore();
-    const { fetchAllStores, createStore, deleteStore, stores, loading: storesLoading } = useBrandStore();
+    const [activeTab, setActiveTab] = useState("stores");
+    const { fetchAllProducts, deleteProduct } = useProductStore();
+    const { 
+        fetchAllStores, 
+        deleteStore, 
+        stores, 
+        pendingStores, 
+        fetchPendingStores, 
+        updateStoreStatus,
+        loading: storesLoading 
+    } = useBrandStore();
     const { fetchCoupons, createCoupon, deleteCoupon, adminCoupons, adminLoading, adminError } = useCouponStore();
 
-    const [productForm, setProductForm] = useState({
-        name: "",
-        description: "",
-        price: "",
-        image: "",
-        category: "",
-        gender: "",
-        storeName: "",
-    });
-
-    const [storeForm, setStoreForm] = useState({ name: "", description: "", image: "" });
-    const [message, setMessage] = useState("");
     const [couponForm, setCouponForm] = useState({ code: "", discountPercentage: 10, isActive: true, expirationDate: "" });
 
     useEffect(() => {
-        fetchAllProducts();
         fetchAllStores();
-    }, [fetchAllProducts, fetchAllStores]);
+        fetchPendingStores();
+    }, [fetchAllStores, fetchPendingStores]);
 
-    // fetch coupons once on mount (admin)
     useEffect(() => {
         fetchCoupons();
     }, []);
-
-    const fileToDataUrl = (file) =>
-        new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-    const handleProductFile = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        try {
-            const dataUrl = await fileToDataUrl(file);
-            setProductForm((s) => ({ ...s, image: dataUrl }));
-        } catch (err) {
-            console.error("File read error", err);
-            toast.error("Unable to read image file");
-        }
-    };
-
-    const handleStoreFile = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        try {
-            const dataUrl = await fileToDataUrl(file);
-            setStoreForm((s) => ({ ...s, image: dataUrl }));
-        } catch (err) {
-            console.error("File read error", err);
-            toast.error("Unable to read image file");
-        }
-    };
-    const handleProductSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            // use central product store to create product
-            await createProduct(productForm);
-            toast.success("Product created");
-            setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "", storeName: "" });
-            // refresh products list
-            fetchAllProducts();
-        } catch (err) {
-            console.error(err);
-            // normalize error to a string to avoid React rendering objects
-            const errMsg = err?.response?.data?.message || err?.response?.data || err?.message || "Error creating product";
-            toast.error(typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg));
-        }
-    };
-
-    const handleStoreSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await createStore(storeForm);
-            toast.success("Store created");
-            setStoreForm({ name: "", description: "", image: "" });
-            await fetchAllStores();
-        } catch (err) {
-            console.error(err);
-            const errMsg = err?.response?.data?.message || err?.response?.data || err?.message || "Error creating store";
-            toast.error(typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg));
-        }
-    };
 
     const handleDeleteStore = async (id) => {
         if (!confirm("Delete this store?")) return;
@@ -129,7 +62,6 @@ const AdminPage = () => {
             await createCoupon(payload);
             setCouponForm({ code: "", discountPercentage: 10, expirationDate: "" });
         } catch (err) {
-            // errors handled in store, but also log full response here for debugging
             console.error("Admin create coupon error", err);
             const errMsg = err?.message || (typeof err === "string" ? err : JSON.stringify(err));
             toast.error(typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg));
@@ -149,307 +81,202 @@ const AdminPage = () => {
         <>
             <Header />
 
-            <div className="breadcrumbs_area">
-                <div className="mx-auto px-4">
+            <div className="breadcrumbs_area py-8 bg-gray-50 border-b">
+                <div className="mx-auto px-4 max-w-7xl">
                     <div className="breadcrumb_content">
-                        <ul>
-                            <li>
-                                <a href="/">home</a>
-                            </li>
-                            <li>
-                                <i className="fa fa-angle-right"></i>
-                            </li>
-                            <li>Admin</li>
+                        <ul className="flex items-center gap-2 text-sm">
+                            <li><a href="/" className="text-gray-500 hover:text-emerald-600 transition-colors">home</a></li>
+                            <li><i className="fa fa-angle-right text-gray-300"></i></li>
+                            <li className="font-bold text-gray-900 tracking-tight">Admin</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <div className="shop_area py-12">
-                <div className="mx-auto px-4">
-                    <div className="pos_page_inner">
-                        <div className="flex flex-wrap -mx-4">
-                            <div className="w-full px-4">
-                                <motion.h1
-                                    className="text-3xl font-bold mb-6 text-emerald-600 tracking-tight"
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5 }}>
-                                    Admin Dashboard
-                                </motion.h1>
+            <div className="admin_page_wrapper py-12 bg-white min-h-screen">
+                <div className="mx-auto px-4 max-w-7xl">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-12"
+                    >
+                        <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter mb-2">
+                            Admin <span className="text-emerald-600">Dashboard</span>
+                        </h1>
+                        <p className="text-gray-500">Manage marketplace stores, coupons, and view system analytics.</p>
+                    </motion.div>
 
-                                <div className="mb-6 bg-white rounded shadow-sm p-4">
-                                    <div className="flex justify-center mb-4">
-                                        {tabs.map((tab) => (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setActiveTab(tab.id)}
-                                                className={`relative flex items-center justify-center px-4 py-2 mx-1 rounded-md transition-colors duration-200 ${
-                                                    activeTab === tab.id ? "bg-emerald-600 text-white" : "text-gray-700 hover:bg-emerald-50"
-                                                }`}>
-                                                <tab.icon className="mr-2 h-5 w-5" />
-                                                <span>{tab.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        {/* Sidebar Tabs */}
+                        <div className="lg:col-span-1 space-y-2">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all duration-300 ${
+                                        activeTab === tab.id 
+                                            ? "bg-emerald-600 text-white shadow-lg shadow-emerald-100" 
+                                            : "text-gray-500 hover:bg-gray-100"
+                                    }`}
+                                >
+                                    <tab.icon className="h-5 w-5" />
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
 
-                                    <AnimatePresence mode="wait">
-                                        <motion.div
-                                            key={activeTab}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            transition={{ duration: 0.3 }}>
-                                            {activeTab === "create" && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div className="p-6 bg-white rounded">
-                                                        <h3 className="text-lg font-semibold mb-3">Create Product</h3>
-                                                        {message && <div className="mb-3 text-sm text-emerald-600">{message}</div>}
-                                                        <form
-                                                            onSubmit={handleProductSubmit}
-                                                            className="space-y-3">
-                                                            <input
-                                                                value={productForm.name}
-                                                                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                                                                placeholder="Name"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <input
-                                                                value={productForm.price}
-                                                                onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                                                                placeholder="Price"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <div>
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    onChange={handleProductFile}
-                                                                    className="w-full"
-                                                                />
-                                                                {productForm.image && (
-                                                                    <div className="mt-2">
-                                                                        <img
-                                                                            src={productForm.image}
-                                                                            alt="product preview"
-                                                                            className="w-24 h-24 object-cover rounded"
-                                                                        />
+                        {/* Content Area */}
+                        <div className="lg:col-span-3">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeTab}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="bg-gray-50 rounded-3xl p-8 border border-gray-100"
+                                >
+                                    {activeTab === "stores" && (
+                                        <div className="space-y-12">
+                                            {/* Pending Requests */}
+                                            <section>
+                                                <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                                    PENDING STORE REQUESTS ({pendingStores?.length || 0})
+                                                </h3>
+                                                
+                                                {storesLoading ? (
+                                                    <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
+                                                ) : pendingStores && pendingStores.length > 0 ? (
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {pendingStores.map((s) => (
+                                                            <div key={s._id} className="bg-white p-6 rounded-2xl border border-gray-200 flex flex-wrap items-center justify-between gap-6 hover:shadow-md transition-all">
+                                                                <div className="flex items-center gap-4">
+                                                                    <img src={s.logo_image} alt={s.name} className="w-16 h-16 object-cover rounded-xl shadow-sm border border-gray-100" />
+                                                                    <div>
+                                                                        <h4 className="font-bold text-gray-900 text-lg leading-tight">{s.name}</h4>
+                                                                        <p className="text-sm text-gray-400 font-medium mb-1">{s.owner?.email || "Unknown Owner"}</p>
+                                                                        <p className="text-xs text-gray-500 line-clamp-1 max-w-md">{s.description}</p>
                                                                     </div>
-                                                                )}
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <button 
+                                                                        onClick={() => updateStoreStatus(s._id, "approved")}
+                                                                        className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors"
+                                                                    >
+                                                                        Approve
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => updateStoreStatus(s._id, "rejected")}
+                                                                        className="px-6 py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors"
+                                                                    >
+                                                                        Reject
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                            <input
-                                                                value={productForm.storeName}
-                                                                onChange={(e) => setProductForm({ ...productForm, storeName: e.target.value })}
-                                                                placeholder="Brand / Store name"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <input
-                                                                value={productForm.gender}
-                                                                onChange={(e) => setProductForm({ ...productForm, gender: e.target.value })}
-                                                                placeholder="Gender"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <input
-                                                                value={productForm.category}
-                                                                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                                                                placeholder="Category"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <textarea
-                                                                value={productForm.description}
-                                                                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                                                                placeholder="Short description"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <div className="flex justify-end">
-                                                                <button
-                                                                    type="submit"
-                                                                    disabled={loading}
-                                                                    className={`bg-emerald-600 text-white px-4 py-2 rounded ${
-                                                                        loading ? "opacity-60 cursor-not-allowed" : ""
-                                                                    }`}>
-                                                                    Create Product
-                                                                </button>
-                                                            </div>
-                                                        </form>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="bg-white p-12 rounded-3xl text-center border-2 border-dashed border-gray-200">
+                                                        <PlusCircle className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                                        <p className="text-gray-400 font-bold">No pending requests at the moment.</p>
+                                                    </div>
+                                                )}
+                                            </section>
 
-                                                        <div className="mt-6">
-                                                            <h4 className="text-md font-semibold mb-3">Existing Stores</h4>
-                                                            {storesLoading ? (
-                                                                <div className="text-sm text-gray-600">Loading stores...</div>
-                                                            ) : stores && stores.length > 0 ? (
-                                                                <ul className="space-y-3">
-                                                                    {stores.map((s) => (
-                                                                        <li
-                                                                            key={s._id}
-                                                                            className="flex items-center justify-between bg-gray-50 border rounded px-3 py-2">
-                                                                            <div className="flex items-center gap-3">
-                                                                                {s.logo_image ? (
-                                                                                    <img
-                                                                                        src={s.logo_image}
-                                                                                        alt={s.name}
-                                                                                        className="w-12 h-12 object-cover rounded"
-                                                                                    />
-                                                                                ) : (
-                                                                                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-sm text-gray-600">
-                                                                                        No
-                                                                                    </div>
-                                                                                )}
-                                                                                <div>
-                                                                                    <div className="font-medium text-gray-800">{s.name}</div>
-                                                                                    <div className="text-sm text-gray-600">{s.description}</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div>
-                                                                                <button
-                                                                                    onClick={() => handleDeleteStore(s._id)}
-                                                                                    className="text-sm text-red-600 hover:underline">
-                                                                                    Delete
-                                                                                </button>
-                                                                            </div>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            ) : (
-                                                                <div className="text-sm text-gray-600">No stores found.</div>
-                                                            )}
+                                            <hr className="border-gray-200" />
+
+                                            {/* Existing Stores */}
+                                            <section>
+                                                <h3 className="text-xl font-black text-gray-900 mb-6 uppercase tracking-tighter">Existing Marketplace Stores</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {stores?.map((s) => (
+                                                        <div key={s._id} className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center justify-between gap-4 group">
+                                                            <div className="flex items-center gap-3">
+                                                                <img src={s.logo_image} className="w-12 h-12 object-cover rounded-lg grayscale group-hover:grayscale-0 transition-all" />
+                                                                <div>
+                                                                    <h5 className="font-bold text-gray-800 leading-tight">{s.name}</h5>
+                                                                    <span className="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded-full font-black uppercase">Approved</span>
+                                                                </div>
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => handleDeleteStore(s._id)}
+                                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <i className="fa fa-trash"></i>
+                                                            </button>
                                                         </div>
-                                                    </div>
-
-                                                    <div className="p-6 bg-white rounded">
-                                                        <h3 className="text-lg font-semibold mb-3">Create Store / Brand</h3>
-                                                        <form
-                                                            onSubmit={handleStoreSubmit}
-                                                            className="space-y-3">
-                                                            <input
-                                                                value={storeForm.name}
-                                                                onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
-                                                                placeholder="Store name"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <div>
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    onChange={handleStoreFile}
-                                                                    className="w-full"
-                                                                />
-                                                                {storeForm.image && (
-                                                                    <div className="mt-2">
-                                                                        <img
-                                                                            src={storeForm.image}
-                                                                            alt="store preview"
-                                                                            className="w-24 h-24 object-cover rounded"
-                                                                        />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <textarea
-                                                                value={storeForm.description}
-                                                                onChange={(e) => setStoreForm({ ...storeForm, description: e.target.value })}
-                                                                placeholder="Short description"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <div className="flex justify-end">
-                                                                <button
-                                                                    type="submit"
-                                                                    disabled={storesLoading}
-                                                                    className={`bg-emerald-600 text-white px-4 py-2 rounded ${
-                                                                        storesLoading ? "opacity-60 cursor-not-allowed" : ""
-                                                                    }`}>
-                                                                    Create Store
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
+                                                    ))}
                                                 </div>
-                                            )}
-                                            {activeTab === "analytics" && <AnalyticsTab />}
-                                            {activeTab === "coupons" && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div className="p-6 bg-white rounded">
-                                                        <h3 className="text-lg font-semibold mb-3">Create Coupon</h3>
-                                                        <form
-                                                            onSubmit={handleCreateCoupon}
-                                                            className="space-y-3">
-                                                            <input
-                                                                value={couponForm.code}
-                                                                onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
-                                                                placeholder="Coupon Code"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <input
-                                                                value={couponForm.discountPercentage}
-                                                                onChange={(e) =>
-                                                                    setCouponForm({ ...couponForm, discountPercentage: Number(e.target.value) })
-                                                                }
-                                                                placeholder="Discount Percentage"
-                                                                type="number"
-                                                                min={0}
-                                                                max={100}
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <input
-                                                                value={couponForm.expirationDate}
-                                                                onChange={(e) => setCouponForm({ ...couponForm, expirationDate: e.target.value })}
-                                                                placeholder="Expiration Date"
-                                                                type="date"
-                                                                className="w-full border px-3 py-2 rounded"
-                                                            />
-                                                            <div className="flex justify-end">
-                                                                <button
-                                                                    type="submit"
-                                                                    className="bg-emerald-600 text-white px-4 py-2 rounded">
-                                                                    Create Coupon
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
+                                            </section>
+                                        </div>
+                                    )}
 
-                                                    <div className="p-6 bg-white rounded">
-                                                        <h3 className="text-lg font-semibold mb-3">Existing Coupons</h3>
-                                                        {adminLoading ? (
-                                                            <div className="text-sm text-gray-600">Loading coupons...</div>
-                                                        ) : adminError ? (
-                                                            <div className="text-sm text-red-600">{adminError}</div>
-                                                        ) : adminCoupons.length === 0 ? (
-                                                            <div className="text-sm text-gray-600">No coupons found.</div>
-                                                        ) : (
-                                                            <ul className="space-y-2">
-                                                                {adminCoupons.map((c) => (
-                                                                    <li
-                                                                        key={c._id}
-                                                                        className="flex items-center justify-between border p-2 rounded">
-                                                                        <div>
-                                                                            <div className="font-medium">
-                                                                                {c.code} — {c.discountPercentage}%
-                                                                            </div>
-                                                                            <div className="text-sm text-gray-500">
-                                                                                Expires: {new Date(c.expirationDate).toLocaleDateString()}
-                                                                            </div>
-                                                                        </div>
-                                                                        <div>
-                                                                            {c.isActive ? (
-                                                                                <button
-                                                                                    onClick={() => handleDeactivateCoupon(c.code)}
-                                                                                    className="text-sm text-red-600">
-                                                                                    Deactivate
-                                                                                </button>
-                                                                            ) : (
-                                                                                <span className="text-sm text-gray-500">Inactive</span>
-                                                                            )}
-                                                                        </div>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
+                                    {activeTab === "analytics" && <AnalyticsTab />}
+
+                                    {activeTab === "coupons" && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                                                <h3 className="text-xl font-black text-gray-900 mb-6 uppercase tracking-tighter">Create Coupon</h3>
+                                                <form onSubmit={handleCreateCoupon} className="space-y-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Code</label>
+                                                        <input
+                                                            value={couponForm.code}
+                                                            onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
+                                                            placeholder="WINTER2024"
+                                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-500 outline-none transition-all font-bold"
+                                                            required
+                                                        />
                                                     </div>
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    </AnimatePresence>
-                                </div>
-                            </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Discount %</label>
+                                                        <input
+                                                            value={couponForm.discountPercentage}
+                                                            onChange={(e) => setCouponForm({ ...couponForm, discountPercentage: Number(e.target.value) })}
+                                                            type="number"
+                                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-500 outline-none transition-all font-bold"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Expiration Date</label>
+                                                        <input
+                                                            value={couponForm.expirationDate}
+                                                            onChange={(e) => setCouponForm({ ...couponForm, expirationDate: e.target.value })}
+                                                            type="date"
+                                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-500 outline-none transition-all font-bold"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <button type="submit" className="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-50 mt-4 hover:bg-emerald-700 transition-colors">
+                                                        Create Coupon
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                                                <h3 className="text-xl font-black text-gray-900 mb-6 uppercase tracking-tighter">Active Coupons</h3>
+                                                {adminLoading ? (
+                                                    <div className="text-center py-8">Loading...</div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {adminCoupons.map((c) => (
+                                                            <div key={c._id} className="p-4 rounded-2xl bg-gray-50 flex items-center justify-between border border-transparent hover:border-emerald-100 transition-all">
+                                                                <div>
+                                                                    <div className="font-black text-emerald-600">{c.code}</div>
+                                                                    <div className="text-xs font-bold text-gray-400">{c.discountPercentage}% OFF</div>
+                                                                </div>
+                                                                <button onClick={() => handleDeactivateCoupon(c.code)} className="text-xs font-bold text-red-500 hover:underline">Deactivate</button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>

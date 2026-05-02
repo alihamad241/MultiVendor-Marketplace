@@ -7,6 +7,8 @@ import { useUserStore } from "../stores/useUserStore";
 import { Loader } from "lucide-react"; // Assuming you have lucide-react installed
 
 const Login = () => {
+    const [isLogin, setIsLogin] = useState(true);
+
     // --- State for Login Form ---
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
@@ -35,89 +37,82 @@ const Login = () => {
         <>
             <Header />
             <div className="breadcrumbs_area bg-gray-50 py-12">
-                <div className="mx-auto px-4 max-w-4xl">
-                    <div className="flex items-center justify-center">
-                        <div className="w-full text-center">
-                            <p className="mt-3 text-gray-600">
-                                Access your account or create a new one to start
-                                shopping.
-                            </p>
-                        </div>
-                    </div>
+                <div className="mx-auto px-4 max-w-4xl text-center">
+                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
+                        {isLogin ? "Welcome Back" : "Join ShopSphere"}
+                    </h1>
+                    <p className="mt-3 text-gray-500 max-w-md mx-auto">
+                        {isLogin 
+                            ? "Log in to access your curated marketplace and track your latest orders." 
+                            : "Create an account to start your journey with the world's most premium brands."}
+                    </p>
                 </div>
             </div>
 
-            <div className="customer_login">
+            <div className="customer_login py-16 bg-white">
                 <div className="mx-auto px-4">
-                    <div className="flex flex-wrap -mx-4">
-                        <div className="w-full md:w-1/2 px-4">
-                            <div className="account_form">
-                                <h2>login</h2>
-                                <form onSubmit={handleLoginSubmit}>
+                    <div className="max-w-md mx-auto">
+                        {isLogin ? (
+                            <div className="account_form animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter">Login</h2>
+                                <form onSubmit={handleLoginSubmit} className="space-y-4">
                                     <p>
-                                        <label>
-                                            Username or email <span>*</span>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            Username or email <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                                             value={loginEmail}
-                                            onChange={(e) =>
-                                                setLoginEmail(e.target.value)
-                                            }
+                                            onChange={(e) => setLoginEmail(e.target.value)}
+                                            required
                                         />
                                     </p>
                                     <p>
-                                        <label>
-                                            Passwords <span>*</span>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            Password <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="password"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                                             value={loginPassword}
-                                            onChange={(e) =>
-                                                setLoginPassword(e.target.value)
-                                            }
+                                            onChange={(e) => setLoginPassword(e.target.value)}
+                                            required
                                         />
                                     </p>
-                                    <div className="login_submit">
+                                    <div className="pt-4">
                                         <button
                                             type="submit"
-                                            disabled={loading}>
+                                            disabled={loading}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-100 transition-all active:scale-[0.98]"
+                                        >
                                             {loading ? (
                                                 <div className="flex items-center justify-center">
-                                                    <Loader className="animate-spin h-4 w-4 mr-2" />
-                                                    Logging in...
+                                                    <Loader className="animate-spin h-5 w-5 mr-2" />
+                                                    Authenticating...
                                                 </div>
                                             ) : (
-                                                "login"
+                                                "LOGIN"
                                             )}
                                         </button>
-                                        {/* <label htmlFor="remember">
-                                            <input
-                                                id="remember"
-                                                type="checkbox"
-                                            />
-                                            Remember me
-                                        </label>
-                                        <Link
-                                            to="/forgot-password"
-                                            className="text-blue-600 hover:underline">
-                                            Forgot your password?
-                                        </Link> */}
                                     </div>
                                 </form>
+                                <p className="mt-8 text-center text-gray-500">
+                                    Don't have an account?{" "}
+                                    <button onClick={() => setIsLogin(false)} className="text-emerald-600 font-bold hover:underline">Register here</button>
+                                </p>
                             </div>
-                        </div>
-
-                        <div className="w-full md:w-1/2 px-4">
-                            <div className="account_form register">
-                                <h2>Register</h2>
-                                <form onSubmit={handleRegisterSubmit}>
+                        ) : (
+                            <div className="account_form animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter">Register</h2>
+                                <form onSubmit={handleRegisterSubmit} className="space-y-4">
                                     <p>
-                                        <label>
-                                            Name <span>*</span>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            Full Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                                             value={registerData.name}
                                             onChange={(e) =>
                                                 setRegisterData({
@@ -125,14 +120,16 @@ const Login = () => {
                                                     name: e.target.value,
                                                 })
                                             }
+                                            required
                                         />
                                     </p>
                                     <p>
-                                        <label>
-                                            Email address <span>*</span>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            Email address <span className="text-red-500">*</span>
                                         </label>
                                         <input
-                                            type="text"
+                                            type="email"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                                             value={registerData.email}
                                             onChange={(e) =>
                                                 setRegisterData({
@@ -140,14 +137,16 @@ const Login = () => {
                                                     email: e.target.value,
                                                 })
                                             }
+                                            required
                                         />
                                     </p>
                                     <p>
-                                        <label>
-                                            Passwords <span>*</span>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            Password <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="password"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                                             value={registerData.password}
                                             onChange={(e) =>
                                                 setRegisterData({
@@ -155,25 +154,32 @@ const Login = () => {
                                                     password: e.target.value,
                                                 })
                                             }
+                                            required
                                         />
                                     </p>
-                                    <div className="login_submit">
+                                    <div className="pt-4">
                                         <button
                                             type="submit"
-                                            disabled={loading}>
+                                            disabled={loading}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-100 transition-all active:scale-[0.98]"
+                                        >
                                             {loading ? (
                                                 <div className="flex items-center justify-center">
-                                                    <Loader className="animate-spin h-4 w-4 mr-2" />
-                                                    Registering...
+                                                    <Loader className="animate-spin h-5 w-5 mr-2" />
+                                                    Creating Account...
                                                 </div>
                                             ) : (
-                                                "Register"
+                                                "CREATE ACCOUNT"
                                             )}
                                         </button>
                                     </div>
                                 </form>
+                                <p className="mt-8 text-center text-gray-500">
+                                    Already have an account?{" "}
+                                    <button onClick={() => setIsLogin(true)} className="text-emerald-600 font-bold hover:underline">Login here</button>
+                                </p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

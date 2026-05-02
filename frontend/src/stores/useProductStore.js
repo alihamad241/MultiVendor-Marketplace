@@ -49,7 +49,7 @@ export const useProductStore = create((set, get) => ({
     fetchProductById: async (id) => {
         set({ loading: true });
         try {
-            const res = await axios.get(`products/${id}`);
+            const res = await axios.get(`products/id/${id}`);
             const product = res.data.product || res.data;
             set({ selectedProduct: product, loading: false });
             return product;
@@ -57,6 +57,23 @@ export const useProductStore = create((set, get) => ({
             set({ loading: false });
             toast.error(error.response?.data?.error || "Failed to fetch product");
             return null;
+        }
+    },
+    updateProduct: async (id, productData) => {
+        set({ loading: true });
+        try {
+            const res = await axios.put(`products/${id}`, productData);
+            set((state) => ({
+                products: state.products.map((p) => (p._id === id ? res.data.product : p)),
+                loading: false,
+            }));
+            toast.success("Product updated successfully");
+            return res.data.product;
+        } catch (error) {
+            set({ loading: false });
+            const msg = error?.response?.data?.message || "Failed to update product";
+            toast.error(msg);
+            throw error;
         }
     },
     fetchProductByCategory: async () => {

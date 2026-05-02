@@ -6,7 +6,7 @@ import cloudinary from "./../libs/cloudinary.js";
 
 export const getAllStores = async (req, res) => {
     try {
-        const stores = await Store.find({}).populate("owner", "name email");
+        const stores = await Store.find({ status: "approved" }).populate("owner", "name email");
         res.status(200).json({ stores });
     } catch (error) {
         res.status(500).json({ message: "Error fetching stores", error });
@@ -66,13 +66,9 @@ export const createStore = async (req, res) => {
             name,
             description,
             logo_image: cloudinaryResponse?.secure_url || "",
-            owner: ownerId
+            owner: ownerId,
+            status: "pending"
         });
-
-        // Update user role to vendor if they aren't already admin/vendor
-        if (req.user.role === "customer") {
-            await User.findByIdAndUpdate(ownerId, { role: "vendor" });
-        }
 
         res.status(201).json(store);
     } catch (error) {
@@ -174,6 +170,41 @@ export const toggleFeaturedStore = async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: "Error updating store", error });
+    }
+};
+
+export const getPendingStores = async (req, res) => {
+    try {
+        const stores = await Store.find({ status: "pending" }).populate("owner", "name email");
+        res.status(200).json({ stores });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching pending stores", error });
+    }
+};
+
+export const updateStoreStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!["approved", "rejected"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const store = await Store.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+
+        if (!store) return res.status(404).json({ message: "Store not found" });
+
+        // If approved, ensure user has vendor role
+        if (status === "approved") {
+            await User.findByIdAndUpdate(store.owner, { role: "vendor" });
+        }
+
+        res.status(200).json(store);
+    } catch (error) {
+        res.status(500).json({ message: "Error updating store status", error });
     }
 };
 

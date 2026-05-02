@@ -17,6 +17,11 @@ const storeSchema = new mongoose.Schema(
         commissionRate: {
             type: Number,
             default: 10 // 10% default commission
+        },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending"
         }
     },
     { timestamps: true }

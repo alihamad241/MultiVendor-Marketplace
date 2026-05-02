@@ -12,6 +12,14 @@ const productSchema = new mongoose.Schema(
 			enum: ["male", "female", "unisex"],
 			default: "unisex",
 		},
+        sizes: {
+            type: [String],
+            default: []
+        },
+        stock: {
+            type: Number,
+            default: 0
+        },
         isFeatured: { type: Boolean, default: false },
         store: {
             type: mongoose.Schema.Types.ObjectId,

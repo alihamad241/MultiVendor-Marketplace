@@ -30,8 +30,10 @@ const BrandRegistration = () => {
         e.preventDefault();
         try {
             await createStore(formData);
-            toast.success("Brand registered successfully!");
-            navigate("/");
+            toast.success("Brand registered successfully! Please wait for admin approval.", {
+                duration: 5000
+            });
+            navigate("/vendor-dashboard");
         } catch (error) {
             // Error handled by store
         }

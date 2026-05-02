@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore";
 import { useProductStore } from "../stores/useProductStore";
+import { useBrandStore } from "../stores/useBrandStore";
 import toast from "react-hot-toast";
 
 export default function Header() {
@@ -30,6 +31,7 @@ export default function Header() {
     }, []);
 
     const { user, checkingAuth, checkAuth, logout } = useUserStore();
+    const { myStore, fetchMyStore } = useBrandStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -90,8 +92,11 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
-        getCartItems();
-    }, [getCartItems]);
+        if (user) {
+            getCartItems();
+            fetchMyStore();
+        }
+    }, [user]); // Only refetch when user changes
 
     return (
         <header>
@@ -109,7 +114,7 @@ export default function Header() {
                                                 My wishlist
                                             </Link>
                                         </li>
-                                        {user && (user.role === "vendor" || user.role === "admin") && (
+                                        {(user?.role === "vendor" || user?.role === "admin" || myStore) && (
                                             <li>
                                                 <Link to="/vendor-dashboard" title="Vendor Dashboard">
                                                     Vendor Dashboard

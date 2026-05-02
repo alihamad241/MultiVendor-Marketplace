@@ -1,5 +1,6 @@
 import { BarChart, PlusCircle, ShoppingBasket, Wallet, Package, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -16,11 +17,15 @@ const tabs = [
 ];
 
 const VendorDashboard = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("inventory");
     const { user } = useUserStore();
-    const { fetchVendorProducts, createProduct, deleteProduct, products, loading: productLoading } = useProductStore();
+    const { fetchVendorProducts, createProduct, updateProduct, deleteProduct, products, loading: productLoading } = useProductStore();
     const { fetchMyStore, myStore, loading: storeLoading } = useBrandStore();
     const { fetchVendorOrders, updateOrderStatus, orders, loading: orderLoading } = useOrdersStore();
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingProductId, setEditingProductId] = useState(null);
 
     const [productForm, setProductForm] = useState({
         name: "",
@@ -29,6 +34,8 @@ const VendorDashboard = () => {
         image: "",
         category: "",
         gender: "",
+        sizes: "",
+        stock: "",
     });
 
     useEffect(() => {
@@ -37,10 +44,13 @@ const VendorDashboard = () => {
             if (store) {
                 fetchVendorProducts(store.name);
                 fetchVendorOrders();
+            } else if (store === null) {
+                // If user doesn't have a store at all, send them to register
+                navigate("/register-brand");
             }
         };
         loadData();
-    }, [fetchMyStore, fetchVendorProducts, fetchVendorOrders]);
+    }, []); // Only fetch on mount
 
     const handleProductFile = async (e) => {
         const file = e.target.files?.[0];
@@ -53,13 +63,37 @@ const VendorDashboard = () => {
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         try {
-            await createProduct({ ...productForm, storeName: myStore.name });
-            toast.success("Product created");
-            setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "" });
+            if (isEditing) {
+                await updateProduct(editingProductId, { ...productForm });
+                toast.success("Product updated");
+            } else {
+                await createProduct({ ...productForm, storeName: myStore.name });
+                toast.success("Product created");
+            }
+            setIsEditing(false);
+            setEditingProductId(null);
+            setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "", sizes: "", stock: "" });
             fetchVendorProducts(myStore.name);
         } catch (err) {
-            toast.error("Error creating product");
+            toast.error(isEditing ? "Error updating product" : "Error creating product");
         }
+    };
+
+    const handleEditClick = (p) => {
+        setIsEditing(true);
+        setEditingProductId(p._id);
+        setProductForm({
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            image: p.image,
+            category: p.category,
+            gender: p.gender || "",
+            sizes: p.sizes?.join(", ") || "",
+            stock: p.stock || 0,
+        });
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDeleteProduct = async (id) => {
@@ -107,7 +141,23 @@ const VendorDashboard = () => {
                             ))}
                         </div>
 
-                        <div className="p-8">
+                                <div className="p-8">
+                            {myStore?.status === "pending" && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4"
+                                >
+                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                                        <Clock className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-amber-900 leading-tight text-lg uppercase tracking-tighter">Approval Pending</h4>
+                                        <p className="text-amber-700 text-sm">Your store application is being reviewed by our administrators. You will be able to manage inventory and add products once your store is approved.</p>
+                                    </div>
+                                </motion.div>
+                            )}
+                            
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
@@ -118,10 +168,10 @@ const VendorDashboard = () => {
                                 >
                                     {activeTab === "inventory" && (
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                            <div className="lg:col-span-1 bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                                            <div className={`lg:col-span-1 bg-gray-50 p-6 rounded-2xl border border-gray-200 ${myStore?.status === "pending" ? "opacity-50 pointer-events-none grayscale" : ""}`}>
                                                 <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
                                                     <PlusCircle className="w-5 h-5 text-emerald-600" />
-                                                    Add New Product
+                                                    {isEditing ? "Edit Product" : "Add New Product"}
                                                 </h3>
                                                 <form onSubmit={handleProductSubmit} className="space-y-4">
                                                     <input
@@ -140,6 +190,16 @@ const VendorDashboard = () => {
                                                             className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
                                                             required
                                                         />
+                                                        <input
+                                                            value={productForm.stock}
+                                                            onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                                                            placeholder="Stock"
+                                                            type="number"
+                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-4">
                                                         <select
                                                             value={productForm.gender}
                                                             onChange={(e) => setProductForm({ ...productForm, gender: e.target.value })}
@@ -151,13 +211,19 @@ const VendorDashboard = () => {
                                                             <option value="female">Female</option>
                                                             <option value="unisex">Unisex</option>
                                                         </select>
+                                                        <input
+                                                            value={productForm.category}
+                                                            onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                                                            placeholder="Category"
+                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                            required
+                                                        />
                                                     </div>
                                                     <input
-                                                        value={productForm.category}
-                                                        onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                                                        placeholder="Category (e.g. T-Shirts)"
+                                                        value={productForm.sizes}
+                                                        onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                                                        placeholder="Sizes (e.g. S, M, L)"
                                                         className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                        required
                                                     />
                                                     <textarea
                                                         value={productForm.description}
@@ -172,9 +238,24 @@ const VendorDashboard = () => {
                                                         <input type="file" accept="image/*" onChange={handleProductFile} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
                                                         {productForm.image && <img src={productForm.image} className="mt-4 w-32 h-32 object-cover rounded-lg border shadow-sm" />}
                                                     </div>
-                                                    <button type="submit" className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
-                                                        Publish Product
-                                                    </button>
+                                                    <div className="flex gap-4">
+                                                        <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+                                                            {isEditing ? "Update Product" : "Publish Product"}
+                                                        </button>
+                                                        {isEditing && (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setIsEditing(false);
+                                                                    setEditingProductId(null);
+                                                                    setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "", sizes: "", stock: "" });
+                                                                }}
+                                                                className="px-6 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </form>
                                             </div>
 
@@ -188,10 +269,22 @@ const VendorDashboard = () => {
                                                         <div key={p._id} className="bg-white border border-gray-200 p-4 rounded-2xl flex gap-4 hover:shadow-md transition-shadow">
                                                             <img src={p.image} className="w-24 h-24 object-cover rounded-lg" />
                                                             <div className="flex-1">
-                                                                <h4 className="font-bold text-gray-900">{p.name}</h4>
+                                                                 <div className="flex justify-between items-start">
+                                                                    <h4 className="font-bold text-gray-900 truncate max-w-[120px]">{p.name}</h4>
+                                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${p.stock > 0 ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}>
+                                                                        {p.stock > 0 ? `Stock: ${p.stock}` : "Out of Stock"}
+                                                                    </span>
+                                                                 </div>
                                                                 <p className="text-emerald-600 font-bold">${p.price}</p>
-                                                                <p className="text-sm text-gray-500">{p.category}</p>
-                                                                <button onClick={() => handleDeleteProduct(p._id)} className="text-xs text-red-500 hover:underline mt-2">Delete Product</button>
+                                                                 <p className="text-xs text-gray-400">{p.category}</p>
+                                                                 <div className="flex gap-4 mt-3">
+                                                                    <button onClick={() => handleEditClick(p)} className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                        <BarChart className="w-3 h-3" /> Edit
+                                                                    </button>
+                                                                    <button onClick={() => handleDeleteProduct(p._id)} className="text-xs text-red-500 hover:underline flex items-center gap-1">
+                                                                        Delete
+                                                                    </button>
+                                                                 </div>
                                                             </div>
                                                         </div>
                                                     ))}

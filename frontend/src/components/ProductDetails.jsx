@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCartStore } from "../stores/useCartStore";
+import { toast } from "react-hot-toast";
 
 export default function ProductDetails({ product, loading }) {
     const addToCart = useCartStore((s) => s.addToCart);
@@ -22,19 +23,17 @@ export default function ProductDetails({ product, loading }) {
 
     const handleAddToCart = async () => {
         if (!product || !product._id) return;
-        // addToCart accepts product object or id; backend stores quantity server-side.
-        // call it `quantity` times if quantity > 1 to keep compatibility with current API.
+        if (product.sizes?.length > 0 && !selectedSize) {
+            toast.error("Please select a size first");
+            return;
+        }
+        
         try {
             for (let i = 0; i < Math.max(1, Number(quantity)); i++) {
-                // call with product object so store can optimistically update
-                // the cart and then refresh from server
-                // await to avoid overwhelming server for large quantities
-                // but keep it simple for small counts
-                // eslint-disable-next-line no-await-in-loop
-                await addToCart(product);
+                await addToCart(product, selectedSize);
             }
         } catch (e) {
-            // store will show a toast; keep UI silent here
+            // error handled in store
         }
     };
 
@@ -55,110 +54,109 @@ export default function ProductDetails({ product, loading }) {
         );
     }
 
+    const isOutOfStock = product?.stock === 0;
+
     return (
         <div className="w-full md:w-1/2 lg:w-6/12 px-4">
-            <div className="product_d_right space-y-4">
-                <h1 className="text-2xl font-bold">{displayName}</h1>
-                <div className="product_ratting mb-2">
-                    <ul className="flex gap-1 text-yellow-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <li key={i}>
-                                <i className="fa fa-star"></i>
-                            </li>
-                        ))}
-                    </ul>
+            <div className="product_d_right space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayName}</h1>
+                    <div className="flex items-center gap-4">
+                        <div className="product_ratting">
+                            <ul className="flex gap-1 text-yellow-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <li key={i}>
+                                        <i className="fa fa-star"></i>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        {product?.stock != null && (
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${isOutOfStock ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                                {isOutOfStock ? "Out of Stock" : "In Stock"}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                <div className="product_desc text-gray-700">
+                <div className="product_desc text-gray-600 leading-relaxed">
                     <p>{description}</p>
                 </div>
 
-                <div className="content_price mb-2 text-xl">
-                    <span className="font-semibold mr-3">{price}</span>
-                    {product?.category && <small className="text-gray-500 ml-2">{product.category}</small>}
+                <div className="flex items-baseline gap-4">
+                    <span className="text-3xl font-black text-emerald-600">{price}</span>
+                    {product?.category && <span className="text-sm font-medium text-gray-400 uppercase tracking-widest">{product.category}</span>}
                 </div>
 
-                <div className="box_quantity mb-2 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm">quantity</label>
+                {product?.sizes?.length > 0 && (
+                    <div className="product_d_size">
+                        <label className="block text-sm font-bold text-gray-700 uppercase mb-3">
+                            Select Size
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                            {product.sizes.map((s) => (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setSelectedSize(s)}
+                                    className={`px-4 py-2 border-2 transition-all duration-200 font-medium rounded-lg ${
+                                        selectedSize === s
+                                            ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                                    }`}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-6 pt-4">
+                    <div className="flex items-center border-2 border-gray-100 rounded-xl bg-gray-50 overflow-hidden">
+                        <button 
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="px-4 py-2 hover:bg-gray-200 transition-colors"
+                        >
+                            <i className="fa fa-minus text-xs"></i>
+                        </button>
                         <input
                             min="1"
-                            max="100"
+                            max={product?.stock || 100}
                             value={quantity}
                             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
                             type="number"
-                            className="w-20 border rounded p-1"
+                            className="w-12 bg-transparent text-center font-bold focus:outline-none"
                         />
+                        <button 
+                            onClick={() => setQuantity(Math.min(product?.stock || 100, quantity + 1))}
+                            className="px-4 py-2 hover:bg-gray-200 transition-colors"
+                        >
+                            <i className="fa fa-plus text-xs"></i>
+                        </button>
                     </div>
 
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={!product?._id}
-                        className="bg-blue-600 disabled:opacity-50 text-white px-4 py-2 rounded">
-                        <i className="fa fa-shopping-cart mr-2"></i> add to cart
+                        disabled={!product?._id || isOutOfStock || (product?.sizes?.length > 0 && !selectedSize)}
+                        className="flex-1 lg:flex-none bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-emerald-200 disabled:shadow-none flex items-center justify-center gap-3">
+                        <i className="fa fa-shopping-cart"></i> 
+                        {isOutOfStock ? "Sold Out" : "Add to Cart"}
                     </button>
 
                     <button
                         type="button"
                         onClick={handleAddToWishlist}
-                        title="add to wishlist"
-                        className="text-gray-600">
-                        <i
-                            className="fa fa-heart"
-                            aria-hidden="true"></i>
+                        className="p-4 border-2 border-gray-100 rounded-xl hover:border-emerald-600 hover:text-emerald-600 transition-all text-gray-400">
+                        <i className="fa fa-heart text-xl"></i>
                     </button>
                 </div>
 
-                {product?.sizes?.length > 0 && (
-                    <div className="product_d_size mb-2">
-                        <label
-                            htmlFor="size"
-                            className="block text-sm mb-1">
-                            size
-                        </label>
-                        <select
-                            name="size"
-                            id="size"
-                            value={selectedSize || ""}
-                            onChange={(e) => setSelectedSize(e.target.value)}
-                            className="border rounded p-2 w-32">
-                            {product.sizes.map((s) => (
-                                <option
-                                    key={s}
-                                    value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-
-                {product?.colors?.length > 0 && (
-                    <div className="sidebar_widget color">
-                        <h2 className="text-lg font-semibold">Choose Color</h2>
-                        <div className="widget_color mt-2">
-                            <ul className="flex gap-2">
-                                {product.colors.map((c) => (
-                                    <li key={c}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedColor(c)}
-                                            aria-label={`Select color ${c}`}
-                                            className={`w-6 h-6 rounded-full border-2 ${selectedColor === c ? "ring-2 ring-blue-400" : ""}`}
-                                            style={{ background: c }}
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                )}
-
-                {product?.stock != null && (
-                    <div className="product_stock mb-2 text-sm text-gray-600">
-                        <p>{product.stock > 0 ? `In stock: ${product.stock}` : "Out of stock"}</p>
-                    </div>
+                {product?.stock != null && product.stock > 0 && product.stock < 10 && (
+                    <p className="text-orange-500 text-sm font-medium animate-pulse">
+                        <i className="fa fa-warning mr-2"></i> Only {product.stock} left in stock - order soon!
+                    </p>
                 )}
 
                 <div className="wishlist-share mt-2">

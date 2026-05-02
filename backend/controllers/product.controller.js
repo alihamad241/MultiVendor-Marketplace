@@ -89,9 +89,19 @@ export const getFeaturedProducts = async (req, res) => {
     }
 };
 
+export const getProductById = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id).populate("store", "name logo_image");
+        if (!product) return res.status(404).json({ message: "Product not found" });
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching product", error: error.message });
+    }
+};
+
 export const createProduct = async (req, res) => {
     try {
-        const { name, description, price, image, category, gender, storeName } = req.body;
+        const { name, description, price, image, category, gender, storeName, sizes, stock } = req.body;
 
         let cloudinaryResponse = null;
 
@@ -115,6 +125,18 @@ export const createProduct = async (req, res) => {
             return res.status(400).json({ message: "Store not found" });
         }
 
+        if (store.status !== "approved") {
+            return res.status(403).json({ message: "Store is not approved yet. You cannot add products." });
+        }
+
+        // Process sizes: if it's a string, split by comma; if array, use it
+        let processedSizes = [];
+        if (typeof sizes === "string") {
+            processedSizes = sizes.split(",").map(s => s.trim()).filter(s => s !== "");
+        } else if (Array.isArray(sizes)) {
+            processedSizes = sizes;
+        }
+
         const product = await Product.create({
             name,
             description,
@@ -123,6 +145,8 @@ export const createProduct = async (req, res) => {
             category,
             gender,
             store: store._id,
+            sizes: processedSizes,
+            stock: Number(stock) || 0
         });
 
         // if this product is featured, refresh the featured cache
@@ -142,6 +166,60 @@ export const createProduct = async (req, res) => {
 
         console.error("createProduct error:", error);
         res.status(500).json({ message: "Error creating product", error: error?.message || error });
+    }
+};
+
+export const updateProduct = async (req, res) => {
+    try {
+        const { name, description, price, image, category, gender, sizes, stock } = req.body;
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        let imageUrl = product.image;
+        if (image && !image.startsWith("http")) {
+            // New image uploaded (as base64)
+            const cloudinaryResponse = await cloudinary.uploader.upload(image, {
+                folder: "products",
+            });
+            imageUrl = cloudinaryResponse.secure_url;
+        }
+
+        // Process sizes
+        let processedSizes = product.sizes;
+        if (sizes !== undefined) {
+            if (typeof sizes === "string") {
+                processedSizes = sizes.split(",").map(s => s.trim()).filter(s => s !== "");
+            } else if (Array.isArray(sizes)) {
+                processedSizes = sizes;
+            }
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            req.params.id,
+            {
+                name: name || product.name,
+                description: description || product.description,
+                price: price || product.price,
+                image: imageUrl,
+                category: category || product.category,
+                gender: gender || product.gender,
+                sizes: processedSizes,
+                stock: stock !== undefined ? Number(stock) : product.stock
+            },
+            { new: true }
+        );
+
+        if (updatedProduct.isFeatured) {
+            await updateFeaturedProductsCache();
+        }
+
+        res.status(200).json({ product: updatedProduct });
+    } catch (error) {
+        console.error("updateProduct error:", error);
+        res.status(500).json({ message: "Error updating product", error: error.message });
     }
 };
 

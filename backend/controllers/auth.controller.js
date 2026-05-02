@@ -57,7 +57,7 @@ export const signup = async (req, res) => {
 
         // authenticate
         console.log("Generating tokens...");
-        const { accessToken, refreshToken } = generateTokens(user._id, 200, res);
+        const { accessToken, refreshToken } = generateTokens(user._id);
 
         console.log("Storing refresh token in Redis...");
         await storeRefreshToken(user._id, refreshToken);
@@ -130,11 +130,15 @@ export const refreshToken = async (req, res) => {
         const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
-            res.status(401).json({ message: "No refresh token found" });
-            return;
+            return res.status(401).json({ message: "No refresh token found" });
         }
 
-        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        let decoded;
+        try {
+            decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        } catch (error) {
+            return res.status(401).json({ message: "Invalid refresh token" });
+        }
 
         const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
@@ -142,18 +146,16 @@ export const refreshToken = async (req, res) => {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
 
-        const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-        const isProd = process.env.NODE_ENV === "production";
-        res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            sameSite: isProd ? "none" : "lax",
-            secure: isProd,
-            maxAge: 15 * 60 * 1000,
-        });
+        // Token rotation: Issue NEW access AND refresh tokens
+        const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.userId);
+        
+        await storeRefreshToken(decoded.userId, newRefreshToken);
+        setCookies(res, accessToken, newRefreshToken);
 
         res.json({ message: "Token refreshed successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error in refreshToken:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 

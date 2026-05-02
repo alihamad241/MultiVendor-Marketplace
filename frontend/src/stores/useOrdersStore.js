@@ -25,6 +25,7 @@ export const useOrdersStore = create((set, get) => ({
     },
 
     fetchVendorOrders: async () => {
+        if (get().loading) return;
         set({ loading: true, error: null });
         try {
             const res = await axios.get("orders/vendor");

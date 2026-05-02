@@ -125,7 +125,7 @@ function App() {
                     />
                     <Route
                         path="/vendor-dashboard"
-                        element={user && (user.role === "vendor" || user.role === "admin") ? <VendorDashboard /> : <Navigate to="/login" />}
+                        element={user ? <VendorDashboard /> : <Navigate to="/login" />}
                     />
                     <Route
                         path="/404"

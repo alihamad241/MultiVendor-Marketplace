@@ -32,7 +32,14 @@ export default function ProductCard({
 
     const handleAddToCart = async (e) => {
         e.preventDefault();
-        if (!prod || !productId) return; // need id to add
+        if (!prod || !productId) return;
+        
+        // If product has sizes, we MUST go to details page to select one
+        if (prod.sizes?.length > 0) {
+            window.location.href = hrefTo;
+            return;
+        }
+
         await addToCart({ _id: productId });
     };
 
@@ -48,6 +55,9 @@ export default function ProductCard({
         if (!productId) return;
         await toggleFeaturedProduct(productId);
     };
+
+    const isOutOfStock = prod.stock === 0;
+
     const cardShadow = {
         boxShadow: "0 6px 12px rgba(0,0,0,0.08), 0 -6px 10px rgba(0,0,0,0.04)",
         borderTop: "1px solid rgba(0,0,0,0.08)",
@@ -79,27 +89,38 @@ export default function ProductCard({
                             />
                         </div>
                     )}
+                    {isOutOfStock && (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                            <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Out of Stock</span>
+                        </div>
+                    )}
                 </div>
                 <div className="w-full md:w-2/3 lg:w-3/4 p-4">
-                    <h3 className="text-lg font-semibold">
-                        <Link
-                            to={hrefTo}
-                            state={{ product: prod }}
-                            className="text-gray-800 hover:text-blue-600">
-                            {displayTitle}
-                        </Link>
-                    </h3>
+                    <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-semibold">
+                            <Link
+                                to={hrefTo}
+                                state={{ product: prod }}
+                                className="text-gray-800 hover:text-blue-600">
+                                {displayTitle}
+                            </Link>
+                        </h3>
+                        {isOutOfStock && <span className="text-xs font-bold text-red-500 uppercase">Out of Stock</span>}
+                    </div>
                     <p className="text-sm text-gray-600 mt-2">
-                        This is a short description for the product, matching
-                        the list view structure.
+                        {prod.description || "No description available for this product."}
                     </p>
                     <div className="mt-4 flex items-center justify-between border-t pt-3">
                         <span className="text-lg font-bold text-gray-900">
-                            {prod.price || price}
+                            ${prod.price || price}
                         </span>
-                        <a href="#" className="text-blue-600">
-                            Add to cart
-                        </a>
+                        <button 
+                            onClick={handleAddToCart}
+                            disabled={isOutOfStock}
+                            className={`text-sm font-bold uppercase tracking-wider ${isOutOfStock ? "text-gray-400" : "text-blue-600 hover:text-blue-800"}`}
+                        >
+                            {isOutOfStock ? "Sold Out" : prod.sizes?.length > 0 ? "Select Size" : "Add to cart"}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -126,6 +147,11 @@ export default function ProductCard({
                             alt="badge"
                             className="w-full h-full object-contain"
                         />
+                    </div>
+                )}
+                {isOutOfStock && (
+                    <div className="absolute inset-0 bg-white/40 flex items-center justify-center">
+                        <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg uppercase tracking-wider">Out of Stock</span>
                     </div>
                 )}
                 {/* wishlist indicator (small heart) */}
@@ -161,19 +187,20 @@ export default function ProductCard({
                         })()}
                     </div>
                 )}
-                <div className="product_action absolute inset-x-2 -bottom-10 group-hover:bottom-2 transition-all duration-300 flex justify-center space-x-2">
+                <div className="product_action absolute inset-x-2 -bottom-12 group-hover:bottom-2 transition-all duration-300 flex justify-center space-x-2">
                     <button
                         onClick={handleAddToCart}
-                        className="bg-white text-sm px-3 py-1 rounded shadow">
-                        Add to cart
+                        disabled={isOutOfStock}
+                        className={`bg-white text-[10px] font-bold uppercase tracking-tighter px-3 py-2 rounded shadow hover:bg-gray-50 transition-colors ${isOutOfStock ? "text-gray-400 line-through" : "text-gray-800"}`}>
+                        {isOutOfStock ? "Sold Out" : prod.sizes?.length > 0 ? "Select Size" : "Add to cart"}
                     </button>
-                    {user && user.role === "admin" && (
+                    {user && (user.role === "admin" || user.role === "owner") && (
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={handleToggleFeatured}
                                 title="Toggle featured"
                                 className="bg-white p-1 rounded shadow">
-                                <Star className="w-4 h-4 text-yellow-500" />
+                                <Star className={`w-4 h-4 ${prod.isFeatured ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />
                             </button>
                             <button
                                 onClick={handleDelete}
@@ -186,14 +213,17 @@ export default function ProductCard({
                 </div>
             </div>
             <div className="product_content p-4">
-                <span className="product_price text-lg font-semibold text-gray-900">
-                    ${prod.price || price}
-                </span>
-                <h3 className="product_title mt-2 text-sm">
+                <div className="flex justify-between items-baseline">
+                    <span className="product_price text-lg font-bold text-emerald-600">
+                        ${prod.price || price}
+                    </span>
+                    {prod.stock < 10 && prod.stock > 0 && <span className="text-[10px] text-orange-500 font-bold uppercase">Only {prod.stock} left</span>}
+                </div>
+                <h3 className="product_title mt-2 text-sm font-medium">
                     <Link
                         to={hrefTo}
                         state={{ product: prod }}
-                        className="text-gray-800 hover:text-blue-600">
+                        className="text-gray-800 hover:text-emerald-600 transition-colors line-clamp-1">
                         {displayTitle}
                     </Link>
                 </h3>

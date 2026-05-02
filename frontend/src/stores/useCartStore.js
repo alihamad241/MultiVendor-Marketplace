@@ -18,7 +18,9 @@ export const useCartStore = create((set, get) => ({
             get().calculateTotals();
         } catch (error) {
             set({ cart: [] });
-            toast.error(error.response.data.message || "Something went wrong, please try again.");
+            if (error.response?.status !== 401) {
+                toast.error(error.response?.data?.message || "Something went wrong, please try again.");
+            }
         }
     },
 
@@ -28,7 +30,7 @@ export const useCartStore = create((set, get) => ({
 
     // coupon is managed by useCouponStore now; cart store keeps `coupon`/`isCouponApplied` mirrored for totals
 
-    addToCart: async (productOrId) => {
+    addToCart: async (productOrId, size = null) => {
         try {
             // accept either a product object or an id string
             const productId = typeof productOrId === "string" ? productOrId : productOrId?._id;
@@ -36,7 +38,7 @@ export const useCartStore = create((set, get) => ({
                 toast.error("Invalid product");
                 return;
             }
-            const res = await axios.post("cart", { productId });
+            const res = await axios.post("cart", { productId, size });
             toast.success("Product added to cart");
 
             // server returns populated cart items; update store directly
@@ -47,9 +49,9 @@ export const useCartStore = create((set, get) => ({
         }
     },
 
-    removeFromCart: async (productId) => {
+    removeFromCart: async (productId, cartItemId = null) => {
         try {
-            const res = await axios.delete(`cart/`, { data: { productId } });
+            const res = await axios.delete(`cart/`, { data: { productId, cartItemId } });
             toast.success("Product removed from cart");
             set({ cart: res.data });
             get().calculateTotals();
@@ -58,9 +60,10 @@ export const useCartStore = create((set, get) => ({
         }
     },
 
-    updateQuantity: async (productId, quantity) => {
+    updateQuantity: async (id, quantity) => {
+        // id can be productId or cartItemId
         try {
-            const res = await axios.put(`/cart/${productId}`, { quantity });
+            const res = await axios.put(`/cart/${id}`, { quantity });
             set({ cart: res.data });
             get().calculateTotals();
         } catch (error) {

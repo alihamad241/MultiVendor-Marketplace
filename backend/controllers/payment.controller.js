@@ -86,6 +86,7 @@ export const createCheckoutSession = async (req, res) => {
                         id: p._id,
                         quantity: p.quantity,
                         price: p.price,
+                        size: p.selectedSize || ""
                     }))
                 ),
             },
@@ -133,6 +134,7 @@ export const checkoutSuccess = async (req, res) => {
                     product: product.id,
                     quantity: product.quantity,
                     price: product.price,
+                    size: product.size || ""
                 })),
                 totalAmount: session.amount_total / 100, // convert from cents to dollars,
                 stripeSessionId: sessionId,
@@ -215,6 +217,7 @@ export const stripeWebhook = async (req, res) => {
                         product: product.id,
                         quantity: product.quantity,
                         price: product.price,
+                        size: product.size || ""
                     })),
                     totalAmount: (session.amount_total || 0) / 100,
                     stripeSessionId: session.id,
@@ -292,6 +295,7 @@ export const createOrderFromSession = async (req, res) => {
                     product: product.id,
                     quantity: product.quantity,
                     price: product.price,
+                    size: product.size || ""
                 })),
                 totalAmount: (session.amount_total || 0) / 100,
                 stripeSessionId: session.id,

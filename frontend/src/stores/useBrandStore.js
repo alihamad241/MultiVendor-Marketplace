@@ -66,8 +66,38 @@ export const useBrandStore = create((set) => ({
         }
     },
 
+    pendingStores: [],
+    fetchPendingStores: async () => {
+        set({ loading: true });
+        try {
+            const res = await axios.get("stores/pending");
+            set({ pendingStores: res.data.stores, loading: false });
+        } catch (error) {
+            set({ loading: false });
+            console.error("Fetch pending stores error", error);
+        }
+    },
+    updateStoreStatus: async (storeId, status) => {
+        set({ loading: true });
+        try {
+            await axios.patch(`stores/${storeId}/status`, { status });
+            set((prev) => ({
+                pendingStores: prev.pendingStores.filter((s) => s._id !== storeId),
+                loading: false,
+            }));
+            // Refresh lists to sync state
+            get().fetchAllStores();
+            get().fetchPendingStores();
+            toast.success(`Store ${status}`);
+        } catch (error) {
+            set({ loading: false });
+            const msg = error?.response?.data?.message || "Failed to update store status";
+            toast.error(msg);
+        }
+    },
     myStore: null,
     fetchMyStore: async () => {
+        if (get().loading && get().myStore) return get().myStore;
         set({ loading: true });
         try {
             const res = await axios.get("stores/my-store");

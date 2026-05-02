@@ -7,14 +7,14 @@ const CartItem = ({ item }) => {
 
   const handleQuantityChange = (e) => {
     const qty = parseInt(e.target.value);
-    if (isNaN(qty) || qty < 1) return; // prevents invalid values
-    updateQuantity(item._id, qty);      // <-- sets exact quantity
+    if (isNaN(qty) || qty < 1) return;
+    updateQuantity(item.cartItemId || item._id, qty);
   };
 
   return (
     <tr className="border border-gray-200 text-center font-bold">
       <td className="px-4 py-2 border-r border-gray-200">
-        <button onClick={() => removeFromCart(item._id)}>
+        <button onClick={() => removeFromCart(item._id, item.cartItemId)}>
           <Trash className="text-[#00BBA6] w-5 h-5 hover:text-red-500 transition-colors duration-200 cursor-pointer" />
         </button>
       </td>
@@ -25,7 +25,12 @@ const CartItem = ({ item }) => {
           className="w-16 h-16 object-cover mx-auto"
         />
       </td>
-      <td className="px-4 py-2 text-center border-r border-gray-200">{item.name}</td>
+      <td className="px-4 py-2 text-center border-r border-gray-200">
+        <div>{item.name}</div>
+        {item.selectedSize && (
+            <div className="text-xs text-gray-500 mt-1 uppercase">Size: {item.selectedSize}</div>
+        )}
+      </td>
       <td className="px-4 py-2 text-[#00BBA6] border-r border-gray-200">£{item.price.toFixed(2)}</td>
       <td className="px-4 py-2 text-center border-r border-gray-200">
         <input
