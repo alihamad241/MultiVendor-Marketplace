@@ -2,7 +2,9 @@ import express from 'express';
 import {
     getAllStores,
     createStore,
-    deleteStore
+    deleteStore,
+    getStoreById,
+    getMyStore
     // getFeaturedStores,
     // getRecommendedStores,
     // getStoresByCategory,
@@ -13,7 +15,9 @@ import { protectRoute, adminRoute } from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 router.get('/', protectRoute, getAllStores);
-router.post('/', protectRoute, adminRoute, createStore);
+router.get('/my-store', protectRoute, getMyStore);
+router.get('/:id', getStoreById);
+router.post('/', protectRoute, createStore);
 router.delete('/:id', protectRoute, adminRoute, deleteStore);
 // router.get('/featured', getFeaturedStores);
 // router.get('/category/:category', getStoresByCategory);

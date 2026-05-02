@@ -12,6 +12,7 @@ import paymentRoutes from './routes/payment.route.js';
 import { connectDB } from './libs/db.js';
 import couponRoutes from './routes/coupon.route.js';
 import analyticsRoutes from './routes/analytics.route.js';
+import orderRoutes from './routes/order.route.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -95,6 +96,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/orders', orderRoutes);
 
 if (process.env.NODE_ENV === 'development') {
     // Serve frontend (SPA) build and add safe catch-all for client routes

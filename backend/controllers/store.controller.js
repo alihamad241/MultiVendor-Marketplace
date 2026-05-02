@@ -1,14 +1,27 @@
 import { redis } from "../libs/redis.js";
 import Product from "../models/product.model.js";
 import Store from "../models/store.model.js";
+import User from "../models/user.model.js";
 import cloudinary from "./../libs/cloudinary.js";
 
 export const getAllStores = async (req, res) => {
     try {
-        const stores = await Store.find({});
+        const stores = await Store.find({}).populate("owner", "name email");
         res.status(200).json({ stores });
     } catch (error) {
-        res.status(500).json({ message: "Error fetching products", error });
+        res.status(500).json({ message: "Error fetching stores", error });
+    }
+};
+
+export const getStoreById = async (req, res) => {
+    try {
+        const store = await Store.findById(req.params.id).populate("owner", "name email");
+        if (!store) return res.status(404).json({ message: "Store not found" });
+
+        const products = await Product.find({ store: req.params.id });
+        res.status(200).json({ store, products });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching store details", error });
     }
 };
 
@@ -39,6 +52,7 @@ export const getFeaturedStores = async (req, res) => {
 export const createStore = async (req, res) => {
     try {
         const { name, description, image } = req.body;
+        const ownerId = req.user._id;
 
         let cloudinaryResponse = null;
 
@@ -51,8 +65,14 @@ export const createStore = async (req, res) => {
         const store = await Store.create({
             name,
             description,
-            logo_image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
+            logo_image: cloudinaryResponse?.secure_url || "",
+            owner: ownerId
         });
+
+        // Update user role to vendor if they aren't already admin/vendor
+        if (req.user.role === "customer") {
+            await User.findByIdAndUpdate(ownerId, { role: "vendor" });
+        }
 
         res.status(201).json(store);
     } catch (error) {
@@ -87,7 +107,17 @@ export const deleteStore = async (req, res) => {
 
         res.json({ message: "Store deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Error deleting store", error });
+        res.status(500).json({ message: "Error deleting store", error: error.message });
+    }
+};
+
+export const getMyStore = async (req, res) => {
+    try {
+        const store = await Store.findOne({ owner: req.user._id });
+        if (!store) return res.status(404).json({ message: "Store not found" });
+        res.status(200).json(store);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching your store", error: error.message });
     }
 };
 

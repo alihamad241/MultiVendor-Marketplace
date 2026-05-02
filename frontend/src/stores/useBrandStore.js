@@ -37,11 +37,23 @@ export const useBrandStore = create((set) => ({
             return null;
         }
     },
-
+    fetchStoreById: async (storeId) => {
+        set({ loading: true });
+        try {
+            const response = await axios.get(`stores/${storeId}`);
+            set({ loading: false });
+            return response.data; // returns { store, products }
+        } catch (error) {
+            const msg = error?.response?.data?.message || "Failed to fetch store details";
+            toast.error(msg);
+            set({ loading: false });
+            return null;
+        }
+    },
     deleteStore: async (storeId) => {
         set({ loading: true });
         try {
-            await axios.delete(`/stores/${storeId}`);
+            await axios.delete(`stores/${storeId}`);
             set((prev) => ({
                 stores: prev.stores.filter((s) => s._id !== storeId),
                 loading: false,
@@ -51,6 +63,19 @@ export const useBrandStore = create((set) => ({
             toast.error(msg);
             set({ loading: false });
             throw error;
+        }
+    },
+
+    myStore: null,
+    fetchMyStore: async () => {
+        set({ loading: true });
+        try {
+            const res = await axios.get("stores/my-store");
+            set({ myStore: res.data, loading: false });
+            return res.data;
+        } catch (error) {
+            set({ loading: false, myStore: null });
+            return null;
         }
     },
 }));

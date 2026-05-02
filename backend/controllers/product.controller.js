@@ -35,6 +35,36 @@ export const getAllProducts = async (req, res) => {
     }
 };
 
+const escapeRegExp = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const searchProductsAndStores = async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) return res.status(200).json({ products: [], stores: [] });
+
+        const regex = new RegExp(escapeRegExp(q), "i");
+
+        const products = await Product.find({
+            $or: [
+                { name: regex },
+                { description: regex },
+                { category: regex }
+            ]
+        }).limit(10);
+
+        const stores = await Store.find({
+            $or: [
+                { name: regex },
+                { description: regex }
+            ]
+        }).limit(5);
+
+        res.status(200).json({ products, stores });
+    } catch (error) {
+        res.status(500).json({ message: "Error performing search", error });
+    }
+};
+
 export const getFeaturedProducts = async (req, res) => {
     try {
         const cached = await redis.get("featured_products");

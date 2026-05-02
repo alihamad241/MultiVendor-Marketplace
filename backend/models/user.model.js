@@ -52,9 +52,13 @@ const userSchema = new mongoose.Schema(
         ],
 		role: {
 			type: String,
-			enum: ["customer", "owner", "admin"],
+			enum: ["customer", "owner", "admin", "vendor"],
 			default: "customer",
 		},
+        walletBalance: {
+            type: Number,
+            default: 0
+        }
 	},
 	{
 		timestamps: true,

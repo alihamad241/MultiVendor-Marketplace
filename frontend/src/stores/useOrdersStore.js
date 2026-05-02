@@ -24,6 +24,34 @@ export const useOrdersStore = create((set, get) => ({
         }
     },
 
+    fetchVendorOrders: async () => {
+        set({ loading: true, error: null });
+        try {
+            const res = await axios.get("orders/vendor");
+            set({ orders: res.data.orders, loading: false });
+        } catch (error) {
+            const msg = error?.response?.data?.message || "Failed to fetch vendor orders";
+            toast.error(msg);
+            set({ loading: false });
+        }
+    },
+
+    updateOrderStatus: async (orderId, status) => {
+        set({ loading: true });
+        try {
+            await axios.patch(`orders/${orderId}/status`, { status });
+            toast.success("Order status updated");
+            set((state) => ({
+                orders: state.orders.map((o) => (o._id === orderId ? { ...o, status } : o)),
+                loading: false,
+            }));
+        } catch (error) {
+            const msg = error?.response?.data?.message || "Failed to update order status";
+            toast.error(msg);
+            set({ loading: false });
+        }
+    },
+
     getOrderById: (id) => {
         const s = get();
         return s.orders.find((o) => String(o._id || o.id) === String(id));

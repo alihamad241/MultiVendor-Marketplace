@@ -49,8 +49,7 @@ export const useProductStore = create((set, get) => ({
     fetchProductById: async (id) => {
         set({ loading: true });
         try {
-            const res = await axios.get(`/products/${id}`);
-            // backend may return { product }
+            const res = await axios.get(`products/${id}`);
             const product = res.data.product || res.data;
             set({ selectedProduct: product, loading: false });
             return product;
@@ -93,7 +92,7 @@ export const useProductStore = create((set, get) => ({
     deleteProduct: async (productId) => {
         set({ loading: true });
         try {
-            await axios.delete(`/products/${productId}`);
+            await axios.delete(`products/${productId}`);
             set((prevProducts) => ({
                 products: (prevProducts.products || []).filter((product) => product._id !== productId),
                 loading: false,
@@ -107,7 +106,7 @@ export const useProductStore = create((set, get) => ({
     toggleFeaturedProduct: async (productId) => {
         set({ loading: true });
         try {
-            const response = await axios.patch(`/products/${productId}`);
+            const response = await axios.patch(`products/${productId}`);
             // backend may return the updated product or an object with { product }
             const updated = response.data.product || response.data;
             const isFeatured = updated.isFeatured;
@@ -126,6 +125,27 @@ export const useProductStore = create((set, get) => ({
                 loading: false,
             }));
         } catch (error) {}
+    },
+    searchProductsAndStores: async (query) => {
+        set({ loading: true });
+        try {
+            const res = await axios.get(`products/search?q=${query}`);
+            set({ loading: false });
+            return res.data; // { products, stores }
+        } catch (error) {
+            set({ loading: false });
+            return { products: [], stores: [] };
+        }
+    },
+    fetchVendorProducts: async (storeName) => {
+        set({ loading: true });
+        try {
+            const res = await axios.get(`products/${storeName}`);
+            set({ products: res.data.products, loading: false });
+        } catch (error) {
+            set({ loading: false });
+            toast.error("Failed to fetch your products");
+        }
     },
     fetchFeaturedProducts: async () => {
         set({ loading: true });

@@ -41,48 +41,54 @@ export const adminRoute = (req, res, next) => {
     }
 };
 
-export const ownerRoute = async (req, res, next) => {
+export const vendorRoute = async (req, res, next) => {
     try {
-        // User must be an owner
-        if (!req.user || req.user.role !== "owner") {
-            return res.status(403).json({ message: "Access Denied. Owners only." });
+        // Must be vendor, owner, or admin
+        const isAuthorizedRole = ["vendor", "owner", "admin"].includes(req.user?.role);
+        if (!req.user || !isAuthorizedRole) {
+            return res.status(403).json({ message: "Access Denied. Vendors/Admins only." });
+        }
+
+        // Admins bypass ownership checks
+        if (req.user.role === "admin") {
+            return next();
         }
 
         let storeId = null;
 
-        // 1️⃣ Product creation → store id sent in body
+        // 1️⃣ Creating product -> store id should be in body
         if (req.method === "POST") {
             storeId = req.body.store;
+            if (!storeId) {
+                // If storeId is not in body, try to find the user's store
+                const userStore = await Store.findOne({ owner: req.user._id });
+                if (userStore) {
+                    storeId = userStore._id;
+                    req.body.store = storeId; // Inject into body for controller
+                }
+            }
         }
 
-        // 2️⃣ Updating/deleting product → find store from product id
-        if ((req.method === "PATCH" || req.method === "DELETE") && req.params.id) {
+        // 2️⃣ Updating/deleting product -> find store from product id
+        if ((req.method === "PATCH" || req.method === "DELETE" || req.method === "PUT") && req.params.id) {
             const product = await Product.findById(req.params.id);
-
-            if (!product)
-                return res.status(404).json({ message: "Product not found" });
-
+            if (!product) return res.status(404).json({ message: "Product not found" });
             storeId = product.store;
         }
 
-        if (!storeId)
-            return res.status(400).json({ message: "Store ID missing" });
+        if (!storeId) return res.status(400).json({ message: "Store ID missing or unauthorized" });
 
-        // 3️⃣ Check if logged-in user owns this store
+        // 3️⃣ Verify ownership
         const store = await Store.findById(storeId);
-
-        if (!store)
-            return res.status(404).json({ message: "Store not found" });
+        if (!store) return res.status(404).json({ message: "Store not found" });
 
         if (store.owner.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                message: "Access Denied. You do not own this store.",
-            });
+            return res.status(403).json({ message: "Access Denied. You do not own this store." });
         }
 
         next();
     } catch (err) {
-        console.error(err);
+        console.error("Error in vendorRoute middleware:", err);
         res.status(500).json({ message: "Server Error" });
     }
 };

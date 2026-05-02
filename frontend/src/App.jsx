@@ -14,6 +14,9 @@ import ShopPage from "./pages/ShopPage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.jsx";
+import BrandRegistration from "./pages/BrandRegistration.jsx";
+import BrandPage from "./pages/BrandPage.jsx";
+import VendorDashboard from "./pages/VendorDashboard.jsx";
 
 import { Toaster } from "react-hot-toast";
 
@@ -111,6 +114,18 @@ function App() {
                     <Route
                         path="/admin"
                         element={user?.role === "admin" ? <AdminPage /> : <Login />}
+                    />
+                    <Route
+                        path="/register-brand"
+                        element={user ? <BrandRegistration /> : <Login />}
+                    />
+                    <Route
+                        path="/brand/:id"
+                        element={<BrandPage />}
+                    />
+                    <Route
+                        path="/vendor-dashboard"
+                        element={user && (user.role === "vendor" || user.role === "admin") ? <VendorDashboard /> : <Navigate to="/login" />}
                     />
                     <Route
                         path="/404"

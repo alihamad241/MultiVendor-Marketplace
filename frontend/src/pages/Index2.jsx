@@ -12,9 +12,13 @@ export default function Index2() {
             <Header />
             <main>
                 <HeroSlider />
-                <NewProducts />
-                <FeaturedProducts />
-                <BrandLogo />
+                <div className="py-12 bg-white">
+                    <div className="container mx-auto px-4 text-center mb-12">
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Discover Top Brands</h2>
+                        <p className="text-xl text-gray-600">Shop directly from your favorite labels and creators.</p>
+                    </div>
+                    <BrandLogo />
+                </div>
             </main>
             <Footer />
         </>
