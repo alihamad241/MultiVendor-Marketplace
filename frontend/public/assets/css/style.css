@@ -298,7 +298,7 @@
 
 /* 2.3 header bottom css here*/
 .header_bottom {
-	background: #00BBA6;
+	background: #059669;
 	height: 50px;
 	position: relative;
 }
@@ -344,7 +344,7 @@
 	font-weight: 400;
 }
 .main_menu nav > ul > li.active > a,.main_menu nav > ul > li:hover > a{
-    background: #018576;
+    background: #047857;
 } 
 .mega_menu {
 	position: absolute;

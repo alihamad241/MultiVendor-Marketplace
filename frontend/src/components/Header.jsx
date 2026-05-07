@@ -168,7 +168,7 @@ export default function Header() {
                             </div>
                             <div className="lg:w-1/2">
                                 <div className="modern_search_bar relative">
-                                    <form onSubmit={handleSearchSubmit} className="flex">
+                                    <form onSubmit={handleSearchSubmit} className="flex h-12">
                                         <input
                                             placeholder="Search products or brands..."
                                             type="text"
@@ -177,9 +177,9 @@ export default function Header() {
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             onFocus={() => setShowSuggestions(true)}
                                             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                            className="border-2 border-emerald-600/20 px-5 py-3 w-full rounded-l-2xl outline-none focus:border-emerald-600 transition-colors"
+                                            className="border-2 border-emerald-600/20 px-5 h-full w-full rounded-l-2xl outline-none focus:border-emerald-600 transition-colors"
                                         />
-                                        <button type="submit" className="bg-emerald-600 text-white px-8 py-3 rounded-r-2xl font-bold hover:bg-emerald-700 transition-colors">
+                                        <button type="submit" className="bg-emerald-600 text-white px-8 h-full rounded-r-2xl font-bold hover:bg-emerald-700 transition-colors border-2 border-transparent">
                                             <i className="fa fa-search"></i>
                                         </button>
                                     </form>
