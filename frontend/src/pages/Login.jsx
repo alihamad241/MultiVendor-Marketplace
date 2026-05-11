@@ -4,7 +4,8 @@ import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useUserStore } from "../stores/useUserStore";
-import { Loader } from "lucide-react"; // Assuming you have lucide-react installed
+import { Loader } from "lucide-react"; 
+import Breadcrumbs from "../components/Breadcrumbs";
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -36,12 +37,14 @@ const Login = () => {
     return (
         <>
             <Header />
-            <div className="breadcrumbs_area bg-gray-50 py-12">
+            <Breadcrumbs items={[{ label: isLogin ? "Login" : "Register" }]} />
+
+            <div className="bg-gray-50 py-12 border-b">
                 <div className="mx-auto px-4 max-w-4xl text-center">
                     <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
                         {isLogin ? "Welcome Back" : "Join ShopSphere"}
                     </h1>
-                    <p className="mt-3 text-gray-500 max-w-md mx-auto">
+                    <p className="mt-3 text-gray-500 max-w-md mx-auto font-medium">
                         {isLogin 
                             ? "Log in to access your curated marketplace and track your latest orders." 
                             : "Create an account to start your journey with the world's most premium brands."}

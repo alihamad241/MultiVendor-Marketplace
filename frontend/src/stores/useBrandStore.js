@@ -2,7 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import axios from "../libs/axios";
 
-export const useBrandStore = create((set) => ({
+export const useBrandStore = create((set, get) => ({
     stores: [],
     loading: false,
     setStores: (stores) => set({ stores }),

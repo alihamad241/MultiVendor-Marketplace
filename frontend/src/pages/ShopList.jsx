@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 import ProductListCard from "../components/ProductListCard";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useProductStore } from "../stores/useProductStore";
 
 export default function ShopList() {
@@ -85,23 +86,7 @@ export default function ShopList() {
         <>
             <Header />
 
-            <div className="breadcrumbs_area">
-                <div className="flex flex-wrap -mx-4">
-                    <div className="w-full">
-                        <div className="breadcrumb_content">
-                            <ul>
-                                <li>
-                                    <a href="/">home</a>
-                                </li>
-                                <li>
-                                    <i className="fa fa-angle-right"></i>
-                                </li>
-                                <li>Shop List</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs items={[{ label: "Shop List" }]} />
 
             <div className="shop_area">
                 <div className="container mx-auto px-4">

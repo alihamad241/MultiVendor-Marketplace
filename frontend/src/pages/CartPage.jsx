@@ -7,6 +7,7 @@ import GiftCouponCard from "../components/GiftCouponCard";
 import CartTotals from "../components/CartTotals";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useEffect } from "react";
 import { useCartStore } from "../stores/useCartStore";
 
@@ -19,23 +20,7 @@ const CartPage = () => {
     return (
         <>
             <Header />
-            <div className="breadcrumbs_area">
-                <div className="flex flex-wrap -mx-4">
-                    <div className="w-full">
-                        <div className="breadcrumb_content">
-                            <ul>
-                                <li>
-                                    <a href="/">home</a>
-                                </li>
-                                <li>
-                                    <i className="fa fa-angle-right"></i>
-                                </li>
-                                <li>Shopping Cart</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs items={[{ label: "Shopping Cart" }]} />
             <div className="py-8 md:py-16">
                 <div className="mx-auto max-w-7xl px-4 2xl:px-0 space-y-8">
                     {cart?.length === 0 ? (

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useProductStore } from "../stores/useProductStore";
 import { useBrandStore } from "../stores/useBrandStore";
 import { useOrdersStore } from "../stores/useOrdersStore";
@@ -108,6 +109,7 @@ const VendorDashboard = () => {
     return (
         <>
             <Header />
+            <Breadcrumbs items={[{ label: "Vendor Dashboard" }]} />
             <div className="shop_area py-12 bg-gray-50 min-h-screen">
                 <div className="mx-auto px-4 max-w-7xl">
                     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -168,95 +170,105 @@ const VendorDashboard = () => {
                                 >
                                     {activeTab === "inventory" && (
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                            <div className={`lg:col-span-1 bg-gray-50 p-6 rounded-2xl border border-gray-200 ${myStore?.status === "pending" ? "opacity-50 pointer-events-none grayscale" : ""}`}>
-                                                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                                                    <PlusCircle className="w-5 h-5 text-emerald-600" />
-                                                    {isEditing ? "Edit Product" : "Add New Product"}
-                                                </h3>
-                                                <form onSubmit={handleProductSubmit} className="space-y-4">
-                                                    <input
-                                                        value={productForm.name}
-                                                        onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                                                        placeholder="Product Name"
-                                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                        required
-                                                    />
-                                                    <div className="flex gap-4">
-                                                        <input
-                                                            value={productForm.price}
-                                                            onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                                                            placeholder="Price ($)"
-                                                            type="number"
-                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                            required
-                                                        />
-                                                        <input
-                                                            value={productForm.stock}
-                                                            onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                                                            placeholder="Stock"
-                                                            type="number"
-                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                            required
-                                                        />
+                                            <div className="lg:col-span-1">
+                                                {myStore?.status === "pending" ? (
+                                                    <div className="bg-gray-50 p-8 rounded-2xl border border-dashed border-gray-300 text-center">
+                                                        <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                                        <h4 className="font-bold text-gray-400 uppercase tracking-tight mb-2">Inventory Locked</h4>
+                                                        <p className="text-xs text-gray-400">You can start adding products once your store is approved by the admin.</p>
                                                     </div>
-                                                    <div className="flex gap-4">
-                                                        <select
-                                                            value={productForm.gender}
-                                                            onChange={(e) => setProductForm({ ...productForm, gender: e.target.value })}
-                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                            required
-                                                        >
-                                                            <option value="">Gender</option>
-                                                            <option value="male">Male</option>
-                                                            <option value="female">Female</option>
-                                                            <option value="unisex">Unisex</option>
-                                                        </select>
-                                                        <input
-                                                            value={productForm.category}
-                                                            onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                                                            placeholder="Category"
-                                                            className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                            required
-                                                        />
+                                                ) : (
+                                                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                                                        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                                                            <PlusCircle className="w-5 h-5 text-emerald-600" />
+                                                            {isEditing ? "Edit Product" : "Add New Product"}
+                                                        </h3>
+                                                        <form onSubmit={handleProductSubmit} className="space-y-4">
+                                                            <input
+                                                                value={productForm.name}
+                                                                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                                                                placeholder="Product Name"
+                                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                required
+                                                            />
+                                                            <div className="flex gap-4">
+                                                                <input
+                                                                    value={productForm.price}
+                                                                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                                                                    placeholder="Price ($)"
+                                                                    type="number"
+                                                                    className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                    required
+                                                                />
+                                                                <input
+                                                                    value={productForm.stock}
+                                                                    onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                                                                    placeholder="Stock"
+                                                                    type="number"
+                                                                    className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="flex gap-4">
+                                                                <select
+                                                                    value={productForm.gender}
+                                                                    onChange={(e) => setProductForm({ ...productForm, gender: e.target.value })}
+                                                                    className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                    required
+                                                                >
+                                                                    <option value="">Gender</option>
+                                                                    <option value="male">Male</option>
+                                                                    <option value="female">Female</option>
+                                                                    <option value="unisex">Unisex</option>
+                                                                </select>
+                                                                <input
+                                                                    value={productForm.category}
+                                                                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                                                                    placeholder="Category"
+                                                                    className="w-1/2 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <input
+                                                                value={productForm.sizes}
+                                                                onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                                                                placeholder="Sizes (e.g. S, M, L)"
+                                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                            />
+                                                            <textarea
+                                                                value={productForm.description}
+                                                                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                                                                placeholder="Product Description"
+                                                                rows="4"
+                                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                                required
+                                                            />
+                                                            <div>
+                                                                <label className="block text-sm text-gray-500 mb-2">Product Image</label>
+                                                                <input type="file" accept="image/*" onChange={handleProductFile} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                                                                {productForm.image && <img src={productForm.image} className="mt-4 w-32 h-32 object-cover rounded-lg border shadow-sm" />}
+                                                            </div>
+                                                            <div className="flex gap-4">
+                                                                <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+                                                                    {isEditing ? "Update Product" : "Publish Product"}
+                                                                </button>
+                                                                {isEditing && (
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setIsEditing(false);
+                                                                            setEditingProductId(null);
+                                                                            setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "", sizes: "", stock: "" });
+                                                                        }}
+                                                                        className="px-6 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </form>
                                                     </div>
-                                                    <input
-                                                        value={productForm.sizes}
-                                                        onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
-                                                        placeholder="Sizes (e.g. S, M, L)"
-                                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                    />
-                                                    <textarea
-                                                        value={productForm.description}
-                                                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                                                        placeholder="Product Description"
-                                                        rows="4"
-                                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                        required
-                                                    />
-                                                    <div>
-                                                        <label className="block text-sm text-gray-500 mb-2">Product Image</label>
-                                                        <input type="file" accept="image/*" onChange={handleProductFile} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
-                                                        {productForm.image && <img src={productForm.image} className="mt-4 w-32 h-32 object-cover rounded-lg border shadow-sm" />}
-                                                    </div>
-                                                    <div className="flex gap-4">
-                                                        <button type="submit" className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
-                                                            {isEditing ? "Update Product" : "Publish Product"}
-                                                        </button>
-                                                        {isEditing && (
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setIsEditing(false);
-                                                                    setEditingProductId(null);
-                                                                    setProductForm({ name: "", description: "", price: "", image: "", category: "", gender: "", sizes: "", stock: "" });
-                                                                }}
-                                                                className="px-6 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </form>
+                                                )}
                                             </div>
 
                                             <div className="lg:col-span-2">
@@ -320,11 +332,13 @@ const VendorDashboard = () => {
                                                                 </td>
                                                                 <td className="px-6 py-4 font-bold text-gray-900">${order.totalAmount}</td>
                                                                 <td className="px-6 py-4">
-                                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
                                                                         order.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                                                                        order.status === "confirmed" ? "bg-indigo-100 text-indigo-700" :
+                                                                        order.status === "preparing" ? "bg-amber-100 text-amber-700" :
                                                                         order.status === "cancelled" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
                                                                     }`}>
-                                                                        {order.status}
+                                                                        {order.status?.replace(/_/g, " ")}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-right">
@@ -334,6 +348,7 @@ const VendorDashboard = () => {
                                                                         onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
                                                                     >
                                                                         <option value="pending">Pending</option>
+                                                                        <option value="confirmed">Confirmed</option>
                                                                         <option value="preparing">Preparing</option>
                                                                         <option value="out_for_delivery">Out for Delivery</option>
                                                                         <option value="completed">Completed</option>

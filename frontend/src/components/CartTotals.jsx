@@ -29,6 +29,7 @@ const CartTotals = () => {
                 image: item.image,
                 price: item.price,
                 quantity: item.quantity || 1,
+                store: item.store,
             }));
 
             const res = await axios.post("payment/create-checkout-session", {

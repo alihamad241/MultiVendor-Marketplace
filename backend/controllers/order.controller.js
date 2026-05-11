@@ -1,6 +1,7 @@
 import Order from "../models/order.model.js";
 import Store from "../models/store.model.js";
 import User from "../models/user.model.js";
+import Product from "../models/product.model.js";
 
 export const getVendorOrders = async (req, res) => {
     try {
@@ -34,6 +35,19 @@ export const updateOrderStatus = async (req, res) => {
         const oldStatus = order.status;
         order.status = status;
         await order.save();
+
+        // Stock Logic: If status changed to "confirmed", decrement stock
+        if (status === "confirmed" && oldStatus !== "confirmed") {
+            try {
+                for (const item of order.products) {
+                    await Product.findByIdAndUpdate(item.product, {
+                        $inc: { stock: -item.quantity }
+                    });
+                }
+            } catch (err) {
+                console.error("Error decrementing stock on confirmation:", err);
+            }
+        }
 
         // Wallet Logic: If status changed to "completed", credit the vendor
         if (status === "completed" && oldStatus !== "completed") {

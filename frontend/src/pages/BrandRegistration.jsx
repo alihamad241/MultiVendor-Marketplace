@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useBrandStore } from "../stores/useBrandStore";
 import { Loader, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -42,10 +43,13 @@ const BrandRegistration = () => {
     return (
         <>
             <Header />
-            <div className="breadcrumbs_area bg-gray-50 py-12">
+            <Breadcrumbs items={[{ label: "Become a Seller" }]} />
+            <div className="bg-gray-50 py-12 border-b">
                 <div className="mx-auto px-4 max-w-4xl text-center">
-                    <h1 className="text-3xl font-bold text-gray-800">Become a Seller</h1>
-                    <p className="mt-3 text-gray-600">
+                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
+                        Become a Seller
+                    </h1>
+                    <p className="mt-3 text-gray-500 max-w-md mx-auto font-medium">
                         Launch your brand on ShopSphere and reach thousands of customers.
                     </p>
                 </div>

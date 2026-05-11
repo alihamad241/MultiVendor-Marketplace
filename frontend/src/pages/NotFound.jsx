@@ -1,31 +1,14 @@
 import React from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 export default function NotFound() {
     return (
         <>
             <Header />
 
-            <div className="breadcrumbs_area">
-                <div className="mx-auto px-4">
-                    <div className="flex flex-wrap -mx-4">
-                        <div className="w-full">
-                            <div className="breadcrumb_content">
-                                <ul>
-                                    <li>
-                                        <a href="/">home</a>
-                                    </li>
-                                    <li>
-                                        <i className="fa fa-angle-right"></i>
-                                    </li>
-                                    <li>404</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs items={[{ label: "404" }]} />
 
             <div className="error_section">
                 <div className="mx-auto px-4">

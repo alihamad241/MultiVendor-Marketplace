@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useProductStore } from "../stores/useProductStore";
 import { useMemo } from "react";
 
@@ -90,23 +91,7 @@ export default function ShopPage() {
     return (
         <>
             <Header />
-            <div className="breadcrumbs_area">
-                <div className="flex flex-wrap -mx-4">
-                    <div className="w-full">
-                        <div className="breadcrumb_content">
-                            <ul>
-                                <li>
-                                    <a href="/">home</a>
-                                </li>
-                                <li>
-                                    <i className="fa fa-angle-right"></i>
-                                </li>
-                                <li>Shop</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs items={[{ label: "Shop" }]} />
 
             <div className="shop_area">
                 <div className="mx-auto px-4">

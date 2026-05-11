@@ -1,6 +1,7 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useState } from "react";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 const Contact = () => {
     const [name, setName] = useState("");
@@ -19,23 +20,7 @@ const Contact = () => {
                 <div className="mx-auto px-4">
                     <div className="pos_page_inner">
                         <Header />
-                        <div className="breadcrumbs_area">
-                            <div className="row">
-                                <div className="w-full">
-                                    <div className="breadcrumb_content">
-                                        <ul>
-                                            <li>
-                                                <a href="index.html">home</a>
-                                            </li>
-                                            <li>
-                                                <i className="fa fa-angle-right"></i>
-                                            </li>
-                                            <li>contact</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <Breadcrumbs items={[{ label: "Contact" }]} />
                         <div className="contact_area">
                             <div className="flex flex-wrap">
                                 <div className="lg:w-1/2 w-full px-4">

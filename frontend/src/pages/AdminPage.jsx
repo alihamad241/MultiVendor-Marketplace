@@ -6,6 +6,7 @@ import axios from "../libs/axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AnalyticsTab from "../components/AnalyticsTab";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { useProductStore } from "../stores/useProductStore";
 import { useBrandStore } from "../stores/useBrandStore";
 import { useCouponStore } from "../stores/useCouponStore";
@@ -81,19 +82,9 @@ const AdminPage = () => {
         <>
             <Header />
 
-            <div className="breadcrumbs_area py-8 bg-gray-50 border-b">
-                <div className="mx-auto px-4 max-w-7xl">
-                    <div className="breadcrumb_content">
-                        <ul className="flex items-center gap-2 text-sm">
-                            <li><a href="/" className="text-gray-500 hover:text-emerald-600 transition-colors">home</a></li>
-                            <li><i className="fa fa-angle-right text-gray-300"></i></li>
-                            <li className="font-bold text-gray-900 tracking-tight">Admin</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs items={[{ label: "Admin" }]} />
 
-            <div className="admin_page_wrapper py-12 bg-white min-h-screen">
+            <div className="admin_page_wrapper py-20 bg-white min-h-screen">
                 <div className="mx-auto px-4 max-w-7xl">
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}

@@ -56,14 +56,13 @@ export const createCheckoutSession = async (req, res) => {
             }
         }
 
-        // Build a base URL that points to this server so Stripe redirects back here
-        // after checkout instead of the client dev server. You can set `SERVER_URL`
-        // in your environment (e.g. http://localhost:5000). If not set, fall back
-        // to localhost with the backend PORT.
-        // const serverBase = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
-        const serverBase = process.env.NODE_ENV === "development"
-            ? `http://localhost:${process.env.PORT || 5000}`
-            : process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+        // Use the first frontend URL from .env if available, otherwise fall back to localhost:5173
+        const rawFrontend = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
+        const clientBase = rawFrontend.split(",")[0].trim();
+        
+        const serverBase = clientBase;
+
+        const storeId = products[0]?.store;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
@@ -80,6 +79,7 @@ export const createCheckoutSession = async (req, res) => {
                 : [],
             metadata: {
                 userId: req.user._id.toString(),
+                storeId: storeId ? storeId.toString() : "",
                 couponCode: couponCode || "",
                 products: JSON.stringify(
                     products.map((p) => ({
@@ -130,6 +130,7 @@ export const checkoutSuccess = async (req, res) => {
             const products = JSON.parse(session.metadata.products);
             const newOrder = new Order({
                 user: session.metadata.userId,
+                store: session.metadata.storeId || null,
                 products: products.map((product) => ({
                     product: product.id,
                     quantity: product.quantity,
@@ -212,6 +213,7 @@ export const stripeWebhook = async (req, res) => {
 
                 const newOrder = new Order({
                     user: session.metadata.userId,
+                    store: session.metadata.storeId || null,
                     products: products.map((product) => ({
                         // store the product id string; Mongoose will cast to ObjectId
                         product: product.id,
@@ -290,6 +292,7 @@ export const createOrderFromSession = async (req, res) => {
 
             const newOrder = new Order({
                 user: session.metadata.userId,
+                store: session.metadata.storeId || null,
                 products: products.map((product) => ({
                     // store the product id string; Mongoose will cast to ObjectId
                     product: product.id,

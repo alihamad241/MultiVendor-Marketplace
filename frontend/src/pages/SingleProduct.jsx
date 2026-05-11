@@ -9,6 +9,7 @@ import ProductModal from "../components/ProductModal";
 import { useParams, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 export default function SingleProduct() {
     const { id } = useParams();
@@ -62,25 +63,12 @@ export default function SingleProduct() {
     return (
         <>
             <Header />
-            <div className="breadcrumbs_area">
-                <div className="mx-auto px-4">
-                    <div className="flex flex-wrap -mx-4">
-                        <div className="w-full">
-                            <div className="breadcrumb_content">
-                                <ul>
-                                    <li>
-                                        <a href="/">home</a>
-                                    </li>
-                                    <li>
-                                        <i className="fa fa-angle-right"></i>
-                                    </li>
-                                    <li>{product ? product.name : loading ? "loading..." : "product not found"}</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Breadcrumbs 
+                items={[
+                    { label: "Shop", path: "/shop" },
+                    { label: product ? product.name : loading ? "loading..." : "product not found" }
+                ]} 
+            />
 
             {loading && !product ? (
                 <div className="mx-auto px-4 py-12 text-center">

@@ -103,23 +103,10 @@ export const createProduct = async (req, res) => {
     try {
         const { name, description, price, image, category, gender, storeName, sizes, stock } = req.body;
 
-        let cloudinaryResponse = null;
-
-        if (image) {
-            cloudinaryResponse = await cloudinary.uploader.upload(image, {
-                folder: "products",
-            });
-        }
-
         // find store by name (case-insensitive)
         const store = await Store.findOne({
             name: { $regex: `^${storeName}$`, $options: "i" },
         });
-
-        // validate required inputs
-        if (!name || !description || !price || !category || !storeName) {
-            return res.status(400).json({ message: "Missing required product fields" });
-        }
 
         if (!store) {
             return res.status(400).json({ message: "Store not found" });
@@ -127,6 +114,19 @@ export const createProduct = async (req, res) => {
 
         if (store.status !== "approved") {
             return res.status(403).json({ message: "Store is not approved yet. You cannot add products." });
+        }
+
+        // validate required inputs
+        if (!name || !description || !price || !category || !storeName) {
+            return res.status(400).json({ message: "Missing required product fields" });
+        }
+
+        let cloudinaryResponse = null;
+
+        if (image) {
+            cloudinaryResponse = await cloudinary.uploader.upload(image, {
+                folder: "products",
+            });
         }
 
         // Process sizes: if it's a string, split by comma; if array, use it

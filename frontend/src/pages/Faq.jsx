@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Plus, Minus, ChevronRight, Home } from "lucide-react";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { Plus, Minus, Home } from "lucide-react";
 
 const faqData = [
     {
@@ -62,25 +63,7 @@ export default function Faq() {
             `}</style>
             <Header />
 
-            {/* --- Breadcrumbs Area --- */}
-            <div className="bg-gray-100 py-6 border-b border-gray-200">
-                <div className="container mx-auto px-4">
-                    <ul className="flex items-center gap-2 text-sm uppercase font-medium text-gray-500">
-                        <li>
-                            <a
-                                href="/"
-                                className="flex items-center transition-colors accent-hover">
-                                <Home size={14} className="mr-1" /> Home
-                            </a>
-                        </li>
-                        <li>
-                            <ChevronRight size={14} />
-                        </li>
-                        <li className="accent-text">Frequently Questions</li>
-                    </ul>
-                </div>
-            </div>
-            {/* --- End Breadcrumbs --- */}
+            <Breadcrumbs items={[{ label: "Frequently Questions" }]} />
 
             {/* --- Main Content --- */}
             <div className="py-16">
