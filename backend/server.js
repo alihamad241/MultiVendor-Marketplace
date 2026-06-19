@@ -68,6 +68,9 @@ if (process.env.NODE_ENV === 'development') {
         })
     );
 } else {
+    // NOTE: After the frontend is deployed, its Vercel URL (e.g., https://your-app.vercel.app)
+    // must be added to FRONTEND_URLS / FRONTEND_URL in the backend's Vercel project 
+    // environment variables, or production API requests will be rejected by CORS.
     app.use(
         cors({
             origin: (origin, callback) => {
@@ -88,6 +91,18 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(cookieParser());
+
+// Middleware to lazily connect to MongoDB on every request (especially useful in serverless environments)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error("Database connection middleware error:", error.message);
+        res.status(500).json({ error: "Database connection failed" });
+    }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/stores', storeRoutes);
@@ -116,18 +131,20 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
-const startServer = async () => {
-    try {
-        await connectDB();
-        app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
-        });
-    } catch (error) {
-        console.error("Failed to start server:", error.message);
-        process.exit(1);
-    }
-};
+if (!process.env.VERCEL) {
+    const startServer = async () => {
+        try {
+            await connectDB();
+            app.listen(PORT, () => {
+                console.log(`Server is running on http://localhost:${PORT}`);
+            });
+        } catch (error) {
+            console.error("Failed to start server:", error.message);
+            process.exit(1);
+        }
+    };
 
-startServer();
+    startServer();
+}
 
 export default app;
