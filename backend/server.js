@@ -113,6 +113,13 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/orders', orderRoutes);
 
+app.get('/', (req, res) => {
+    res.json({
+        status: "active",
+        message: "ShopSphere Backend API is running successfully."
+    });
+});
+
 if (process.env.NODE_ENV === 'development') {
     // Serve frontend (SPA) build and add safe catch-all for client routes
     const __filename = fileURLToPath(import.meta.url);
